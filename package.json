@@ -1,16 +1,26 @@
 {
-  "description": "NativeScript Application",
-  "license": "SEE LICENSE IN <your-license-filename>",
-  "readme": "NativeScript Application",
-  "repository": "<fill-your-repository-here>",
+  "description": "A secure chat app",
+  "license": "SEE LICENSE IN ./LICENSE",
+  "readme": "<to be added later>",
+  "repository": "https://github.com/jumpinggoofballs/Squeak",
   "nativescript": {
-    "id": "org.nativescript.Squeak"
+    "id": "org.nativescript.Squeak",
+    "tns-android": {
+      "version": "2.5.0"
+    }
   },
   "dependencies": {
+    "nativescript-floatingactionbutton": "^2.2.7",
     "nativescript-theme-core": "~1.0.2",
     "tns-core-modules": "2.5.1"
   },
   "devDependencies": {
-    "nativescript-dev-android-snapshot": "^0.*.*"
+    "babel-traverse": "6.23.1",
+    "babel-types": "6.23.0",
+    "babylon": "6.16.1",
+    "lazy": "1.0.11",
+    "nativescript-dev-android-snapshot": "^0.*.*",
+    "nativescript-dev-typescript": "^0.3.7",
+    "typescript": "^2.1.6"
   }
 }

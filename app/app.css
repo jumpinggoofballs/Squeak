@@ -8,8 +8,23 @@ selectors and properties you can use to style UI components.
 For example, the following CSS rule changes the font size of all UI
 components that have the btn class name.
 */
+
 .btn {
-    font-size: 18;
+    background-color: #5c687c;
+}
+
+.friendListRow {
+    font: 20;
+    color: black;
+    padding: 18;
+}
+
+ .fab-button {
+    height: 60;
+    margin: 40;
+    background-color: #5c687c; 
+    horizontal-align: right; 
+    vertical-align: bottom; 
 }
 
 /*
@@ -17,4 +32,4 @@ In many cases you may want to use the NativeScript core theme instead
 of writing your own CSS rules. For a full list of class names in the theme
 refer to http://docs.nativescript.org/ui/theme.
 */
-@import 'nativescript-theme-core/css/core.light.css';
+@import 'nativescript-theme-core/css/grey.css';

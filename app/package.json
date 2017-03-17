@@ -3,6 +3,6 @@
     "v8Flags": "--expose_gc"
   },
   "main": "app.js",
-  "name": "tns-template-hello-world",
+  "name": "Squeak",
   "version": "2.5.0"
 }
