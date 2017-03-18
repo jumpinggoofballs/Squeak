@@ -11,6 +11,7 @@ components that have the btn class name.
 
 .btn {
     background-color: #5c687c;
+    color: white;
 }
 
 .friendListRow {
@@ -21,7 +22,7 @@ components that have the btn class name.
 
  .fab-button {
     height: 60;
-    margin: 40;
+    margin: 35;
     background-color: #5c687c; 
     horizontal-align: right; 
     vertical-align: bottom; 
