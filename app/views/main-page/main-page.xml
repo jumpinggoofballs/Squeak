@@ -1,12 +1,12 @@
 <Page class="page" loaded="pageLoaded" xmlns:FAB="nativescript-floatingactionbutton">
     <Page.actionBar>
         <ActionBar title="Squeak" icon="" class="action-bar">
-            <ActionItem tap="navigateToSettings" rippleColor="#f1f1f1" ios.position="right" ios.systemIcon="2" android.systemIcon="ic_settings"/>
+            <ActionItem tap="{{ goToSettings }}" rippleColor="#f1f1f1" ios.position="right" ios.systemIcon="2" android.systemIcon="ic_settings"/>
         </ActionBar>
     </Page.actionBar>
 
     <grid-layout rows="auto, *">
-        <ListView row="1" items="{{ myFriends }}" itemTap="listViewItemTap">
+        <ListView row="1" items="{{ myFriends }}" itemTap="{{ goToChat }}">
             <ListView.itemTemplate>
                 <Label text="{{ nickname }}" textWrap="true" class="friendListRow" />
             </ListView.itemTemplate>

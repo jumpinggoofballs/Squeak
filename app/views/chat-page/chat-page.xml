@@ -1,0 +1,11 @@
+<Page class="page" loaded="pageLoaded">
+    <Page.actionBar>
+        <ActionBar title="Chat" icon="" class="action-bar">
+            <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="goBack"/>
+        </ActionBar>
+    </Page.actionBar>
+
+    <StackLayout>
+        <Label text="Chat Page" textWrap="true" />
+    </StackLayout>
+</Page>
