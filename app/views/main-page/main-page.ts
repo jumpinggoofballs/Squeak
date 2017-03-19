@@ -4,70 +4,65 @@ import { Page } from 'ui/page';
 import { ListView } from 'ui/list-view';
 
 import { Friend } from '../../data/app-data-model';
+import * as appStore from '../../data/app-store';
 import { navigateTo } from '../../app-navigation';
-
-// import { setStatusBarColorsIOS } from '../../shared/status-bar-util';
 
 class PageModel extends Observable {
 
-    public myFriends: ObservableArray<Friend>;
-    public dbRef: any;
+    public myFriends: ObservableArray<Object>;
 
-    constructor(database: any) {
+    constructor() {
         super();
 
-        this.dbRef = database;
+        this.myFriends = new ObservableArray();
 
-        this.myFriends = new ObservableArray<Friend>();
-
-        this.dbRef.all('SELECT * FROM friends').then(rows => {
-            for (var row in rows) {
-                this.myFriends.push(new Friend(rows[row][1]));
-            }
-        }, error => {
-            console.log('select error');
-        });
+        this.populateFriendsList();
     }
 
-    // define Actions on the model / Observables here    
+    private populateFriendsList() {
+        appStore.getFriendsList()
+            .then(friendsList => {
+                this.set('myFriends', friendsList);
+            }, error => {
+                alert(error);
+            });
+    }
+
+
     public addFriend() {
-        this.dbRef.execSQL('INSERT INTO friends (nickname) VALUES (?)', ['testy test friend 3']).then(() => {
-            this.myFriends.push(new Friend('testy test friend 3'));
-        }, error => {
-            console.log('insert error');
-        });
-        console.log(this.dbRef);
+        appStore.addFriend('Name of Friend to Test')
+            .then(() => {
+                this.populateFriendsList();
+            }, error => {
+                alert(error);
+            });
     }
 
-    goToSettings(args: EventData) {
+    public goToSettings(args: EventData) {
         navigateTo('settings-page');
     }
 
-    goToChat(args) {
-        var chatTitle = this.myFriends.getItem(args.index).nickname;
+    public goToChat(args) {
+        var chatTitle = this.myFriends[args.index].nickname;
         navigateTo('chat-page', chatTitle);
     }
 };
 
-// bind the Page template to the Data Model from above
+// init the Friends data from the appStore and bind the PageModel to the page;
 export function pageLoaded(args: EventData) {
-    var page = <Page>args.object;
-    var Sqlite = require('nativescript-sqlite');
-    (new Sqlite('test.db')).then(db => {
-        db.execSQL('CREATE TABLE IF NOT EXISTS friends (id INTEGER PRIMARY KEY AUTOINCREMENT, nickname TEXT)').then(id => {
-            page.bindingContext = new PageModel(db);
-        }, error => {
-            console.log('create table error ' + error);
-        });
-    }, error => {
-        console.log('create db error');
-    });
-    // page.bindingContext = new PageModel();
 
-    // This makes the phone Status Bar the same color as the app Action Bar (??)
+    var page = <Page>args.object;
+    appStore.initFriendsData()
+        .then(() => {
+            page.bindingContext = new PageModel();
+        }, error => {
+            alert(error);
+        });
+
+
+    // // This makes the phone Status Bar the same color as the app Action Bar (??)
+    // import { setStatusBarColorsIOS } from '../../shared/status-bar-util';
     // page.style.marginTop = -20;
     // page.style.paddingTop = 20;
     // setStatusBarColorsIOS();
 }
-
-// add generic Page functionality below
