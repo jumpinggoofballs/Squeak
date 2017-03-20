@@ -1,2 +1,5 @@
 node_modules
 platforms
+# Ignores compiled TypeScript files
+app/**/*.map
+app/**/*.js

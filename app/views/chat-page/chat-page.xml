@@ -1,12 +1,20 @@
 <Page class="page" loaded="pageLoaded">
     <Page.actionBar>
-        <ActionBar title="{{ chatName }}" icon="" class="action-bar">
+        <ActionBar title="{{ thisFriend.nickname }}" icon="" class="action-bar">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
             <ActionItem tap="{{ removeFriend }}" rippleColor="#f1f1f1" ios.position="right" ios.systemIcon="2" android.systemIcon="ic_settings"/>
         </ActionBar>
     </Page.actionBar>
 
-    <StackLayout>
-        <Label text="Chat Page" textWrap="true" />
-    </StackLayout>
+    <GridLayout rows="*, auto">
+        <ListView row="0" items="{{ thisFriend.messages }}" loaded="onLoaded" itemLoading="onItemLoading" itemTap="onItemTap">
+            <ListView.itemTemplate>
+                <Label text="{{ messageText }}" textWrap="true" />
+            </ListView.itemTemplate>
+        </ListView>
+        <GridLayout row="1" columns="*, auto">
+            <TextField col="0" hint="Message" text="{{ newMessageText }}" />
+            <Button col="1" text="Send" tap="{{ sendMessage }}" />
+        </GridLayout>
+    </GridLayout>
 </Page>

@@ -30,7 +30,7 @@ class PageModel extends Observable {
 
 
     public addFriend() {
-        appStore.addFriend('Name of Friend to Test 3')
+        appStore.addFriend('Squaaaashh')
             .then(() => {
                 this.populateFriendsList();
             }, error => {
@@ -43,9 +43,10 @@ class PageModel extends Observable {
     }
 
     public goToChat(args) {
-        navigateTo('chat-page', args.index.toString());
+        navigateTo('chat-page', this.myFriends[args.index]._id);
     }
 };
+
 
 // init the Friends data from the appStore and bind the PageModel to the page;
 export function pageLoaded(args: EventData) {
@@ -53,7 +54,6 @@ export function pageLoaded(args: EventData) {
     var page = <Page>args.object;
     appStore.initAppData()
         .then(logMessage => {
-            console.log(logMessage);
             page.bindingContext = new PageModel();
         }, error => {
             alert(error);

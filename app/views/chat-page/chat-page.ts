@@ -6,33 +6,36 @@ import * as appStore from '../../data/app-store';
 
 class PageModel extends Observable {
 
-    private chatRef: string;
-    public chatName: string;
+    private thisFriend: any;
+    public newMessageText: string;
 
     constructor(chatRef: string) {
         super();
-        this.chatName = 'Chat';
-        this.chatRef = chatRef;
 
+        this.newMessageText = '';
         this.getPageData(chatRef);
     }
 
     private getPageData(friendRef) {
-        appStore.getFriendsList()
-            .then(friendsList => {
-                var thisFriend = friendsList[friendRef];
-                this.set('chatName', thisFriend.nickname);
-            })
+        var thisChatFriend = appStore.getFriend(friendRef);
+        this.set('thisFriend', thisChatFriend);
     }
 
     public removeFriend() {
-        var chatRef = parseInt(this.chatRef);
         navigateBack();
-        appStore.removeFriend(chatRef);
+        appStore.removeFriend(this.thisFriend._id);
     }
 
     public goBack() {
         navigateBack();
+    }
+
+    public sendMessage() {
+        appStore.sendMessage(this.thisFriend._id, this.newMessageText)
+            .then(() => {
+                this.set('newMessageText', '');
+                this.getPageData(this.thisFriend._id);
+            });
     }
 }
 
