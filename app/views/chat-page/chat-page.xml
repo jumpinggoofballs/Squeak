@@ -2,6 +2,7 @@
     <Page.actionBar>
         <ActionBar title="{{ chatName }}" icon="" class="action-bar">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
+            <ActionItem tap="{{ removeFriend }}" rippleColor="#f1f1f1" ios.position="right" ios.systemIcon="2" android.systemIcon="ic_settings"/>
         </ActionBar>
     </Page.actionBar>
 

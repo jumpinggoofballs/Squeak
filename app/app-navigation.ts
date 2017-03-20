@@ -6,7 +6,7 @@ export function navigateTo(pageName: string, params?: string) {
     topFrameModule.navigate({
         moduleName: 'views/' + pageName + '/' + pageName,
         context: {
-            chatName: params
+            chatRef: params
         }
     });
 }

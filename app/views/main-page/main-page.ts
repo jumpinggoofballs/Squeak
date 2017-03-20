@@ -14,7 +14,7 @@ class PageModel extends Observable {
     constructor() {
         super();
 
-        this.myFriends = new ObservableArray();
+        this.myFriends = new ObservableArray([]);
 
         this.populateFriendsList();
     }
@@ -30,7 +30,7 @@ class PageModel extends Observable {
 
 
     public addFriend() {
-        appStore.addFriend('Name of Friend to Test')
+        appStore.addFriend('Name of Friend to Test 3')
             .then(() => {
                 this.populateFriendsList();
             }, error => {
@@ -43,8 +43,7 @@ class PageModel extends Observable {
     }
 
     public goToChat(args) {
-        var chatTitle = this.myFriends[args.index].nickname;
-        navigateTo('chat-page', chatTitle);
+        navigateTo('chat-page', args.index.toString());
     }
 };
 
@@ -52,8 +51,9 @@ class PageModel extends Observable {
 export function pageLoaded(args: EventData) {
 
     var page = <Page>args.object;
-    appStore.initFriendsData()
-        .then(() => {
+    appStore.initAppData()
+        .then(logMessage => {
+            console.log(logMessage);
             page.bindingContext = new PageModel();
         }, error => {
             alert(error);
