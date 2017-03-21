@@ -1,6 +1,15 @@
-import application = require('application');
+﻿import application = require('application');
 application.mainModule = './views/main-page/main-page';
 application.cssFile = './app.css';
+
+import moment = require("moment");
+function fromNow(value: Date): any {
+    if (value) {
+        return moment(value).fromNow();
+    }
+}
+
+application.resources['fromNow'] = fromNow;
 
 application.start();
 

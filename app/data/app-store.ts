@@ -79,10 +79,7 @@ export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }>
 export var addFriend = function (nickname: string): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
-        var newFriend = {
-            ...new Friend(nickname),
-            documentType: 'Friend'
-        }
+        var newFriend = new Friend(nickname);
         database.createDocument(newFriend);
 
         resolve('Added New Friend');

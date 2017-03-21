@@ -1,0 +1,92 @@
+ListView { 
+    separator-color: transparent; 
+    margin-top: 15;    
+}
+
+.msg {
+    font-size: 17;
+    margin-top: 10;
+    margin-bottom: 10;
+    text-align: center;
+}
+
+.me .msg_text {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 10;
+    border-radius: 15;
+}
+
+.them .msg_text {
+    background-color: #c9d2e0;
+    color: #333;
+    padding: 10;
+    border-radius: 15;
+}
+
+.them .msg_timestamp {
+    color: gray;
+    font-size: 11;
+    margin-left: 30;
+    text-align: left;
+}
+
+.me .msg_timestamp {
+    color: gray;
+    font-size: 11;
+    margin-right: 30;
+    text-align: right;
+}
+
+.bumper {
+    flex: 1;
+    width: 50%;
+}
+/*.authorimg {
+    margin: 0 5 5 5;
+    width: 30;
+    height: 30;
+    border-radius: 15;
+}*/
+
+
+.triangle-right {
+    width: 15;
+    height: 30;
+    background-color: transparent;
+    border-color: transparent  transparent transparent #e0e0e0;
+    border-width: 15;
+    margin-left: -15;
+}
+
+.triangle-left {
+    width: 15;
+    height: 30;
+    background-color: transparent;
+    border-color: transparent #c9d2e0 transparent transparent ;
+    border-width: 15;
+    margin-right: -15;
+}
+
+.message-bar {
+    padding: 25;
+    margin-left: 15;
+    margin-right: -15;
+}
+
+.message-bar TextView {
+    background-color: #e0e0e0;
+    padding-left:20;
+    border-radius: 15;
+}
+
+.message-bar Label {
+    margin-left: 0;
+}
+
+.message-bar Button {
+    background-color: transparent;
+    border-radius: 30;
+    margin: 0;
+    color: #5c687c;
+}

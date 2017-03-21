@@ -1,20 +1,52 @@
 <Page class="page" loaded="pageLoaded">
+
+    <!-- Header and navigation bar -->
     <Page.actionBar>
         <ActionBar title="{{ thisFriend.nickname }}" icon="" class="action-bar">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
-            <ActionItem tap="{{ removeFriend }}" rippleColor="#f1f1f1" ios.position="right" ios.systemIcon="2" android.systemIcon="ic_settings"/>
+            <ActionItem tap="{{ removeFriend }}" ios.systemIcon="16" ios.position="right" text="Delete" android.position="popup" />
         </ActionBar>
     </Page.actionBar>
 
+    <!-- Chat messages list -->
     <GridLayout rows="*, auto">
-        <ListView row="0" items="{{ thisFriend.messages }}" loaded="onLoaded" itemLoading="onItemLoading" itemTap="onItemTap">
+        <ListView row="0" items="{{ thisFriend.messages }}" loaded="onLoaded" itemLoading="onItemLoading" itemTap="onItemTap" separatorColor="transparent">
             <ListView.itemTemplate>
-                <Label text="{{ messageText }}" textWrap="true" />
+                <StackLayout>
+
+                    <!-- Incoming messages template -->
+                    <StackLayout class="msg them" visibility="{{ !sourceIsMe ? 'visible' : 'collapsed' }}">
+                        <GridLayout columns="25, 3*, *">
+                            <Label col="0" class="triangle-left" text="col 3" />
+                            <FlexboxLayout col="1" flexDirection="row">
+                                <Label text="{{ messageText }}" class="msg_text" textWrap="true" />
+                            </FlexboxLayout>
+                        </GridLayout>
+
+                        <Label class="msg_timestamp" text="{{ messageTimeSent }}" />
+                    </StackLayout>
+
+                    <!-- Outgoing messages template -->
+                    <StackLayout class="msg me" visibility="{{ sourceIsMe ? 'visible' : 'collapsed' }}">
+                        <GridLayout columns="*, 3*, 25">
+                            <FlexboxLayout col="1" flexDirection="row-reverse">
+                                <Label text="{{ messageText }}" class="msg_text" textWrap="true" horizontalAlignment="right"/>
+                            </FlexboxLayout>
+                            <Label col="2" class="triangle-right" text="col 3" />
+                        </GridLayout>
+
+                        <Label class="msg_timestamp" text="{{ messageTimeSent | fromNow }}" />
+                    </StackLayout>
+
+                </StackLayout>
             </ListView.itemTemplate>
         </ListView>
-        <GridLayout row="1" columns="*, auto">
-            <TextField col="0" hint="Message" text="{{ newMessageText }}" />
-            <Button col="1" text="Send" tap="{{ sendMessage }}" />
+
+        <!-- Send new message bar-->
+        <GridLayout row="1" columns="*, auto, auto" rows="*" class="message-bar">
+            <TextView col="0" hint="Send message" text="{{ newMessageText }}" textWrap="true" />
+            <Label col="1" class="triangle-right"/>
+            <Button col="2" text="&#xf1d8;" tap="{{ sendMessage }}" class="fa-icon"/>
         </GridLayout>
     </GridLayout>
 </Page>

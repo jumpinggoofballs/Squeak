@@ -19,6 +19,7 @@ export class Friend {
     timeLastMessage: Date;
     lastMessagePreview: string;
     messages: Array<Message>;
+    documentType: string;
 
     constructor(nickname: string) {
         this.nickname = nickname;
@@ -26,5 +27,6 @@ export class Friend {
         this.timeLastMessage = new Date();
         this.lastMessagePreview = 'New Friend';
         this.messages = [];
+        this.documentType = 'Friend';
     }
 }
