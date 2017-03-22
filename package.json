@@ -13,6 +13,7 @@
     "moment": "^2.18.0",
     "nativescript-couchbase": "^1.0.17",
     "nativescript-floatingactionbutton": "^2.2.7",
+    "nativescript-plugin-firebase": "^3.10.2",
     "nativescript-theme-core": "~1.0.2",
     "tns-core-modules": "2.5.2"
   },

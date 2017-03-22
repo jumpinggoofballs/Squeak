@@ -7,7 +7,7 @@ import { Friend, Message } from './app-data-model';
 // getFriendsList().then( friendsList => { <do stuff with friendsList Array> } )        -- gets the friendsList as an Array
 // addFriend(<friend nickname>).then( logMessage => {<optional>})                       -- adds a Friend to the Friends Data Table
 // removeFriend(<friend _id>).then( logMessage => {<optional>})                         -- adds a Friend to the Friends Data Table
-// editFriend(<friend _id>, <new data content>).then( logMessage => {<optional>})       -- adds a Friend to the Friends Data Table
+// updateFriend(<friend _id>, <new data content>).then( logMessage => {<optional>})       -- adds a Friend to the Friends Data Table
 // 
 ///////////////////////
 
@@ -95,7 +95,7 @@ export var removeFriend = function (targetId: string): Promise<{ logMessage: str
     });
 }
 
-export var editFriend = function (targetId: string, newProperties: Object): Promise<{ logMessage: string }> {
+export var updateFriend = function (targetId: string, newProperties: Object): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
         database.updateDocument(targetId, newProperties);
