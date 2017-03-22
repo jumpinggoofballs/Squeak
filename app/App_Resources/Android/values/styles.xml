@@ -10,8 +10,8 @@
         <item name="colorAccent">@color/ns_accent</item>
 
         <item name="android:windowBackground">@drawable/splash_screen</item>
-        
-        <item name="android:windowActionBarOverlay">true</item>  
+
+        <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowTranslucentStatus">true</item>
 
     </style>
@@ -25,8 +25,9 @@
 
         <item name="colorPrimary">@color/ns_primary</item>
         <item name="colorPrimaryDark">@color/ns_primaryDark</item>
-        <item name="colorAccent">@color/ns_accent</item>
-
+        <item name="colorAccent">@color/white</item>
+        <item name="actionMenuTextColor">@color/white</item>
+        <item name="android:actionMenuTextColor">@color/white</item>
     </style>
 
     <style name="AppTheme" parent="AppThemeBase">
@@ -42,4 +43,4 @@
 
     <style name="NativeScriptToolbarStyle" parent="NativeScriptToolbarStyleBase">
     </style>
-</resources> 
+</resources>

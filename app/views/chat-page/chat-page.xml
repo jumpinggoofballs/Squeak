@@ -4,7 +4,7 @@
     <Page.actionBar>
         <ActionBar title="{{ thisFriend.nickname }}" icon="" class="action-bar">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
-            <ActionItem tap="{{ removeFriend }}" ios.systemIcon="16" ios.position="right" text="Delete" android.position="popup" />
+            <ActionItem tap="{{ removeFriend }}" ios.systemIcon="16" ios.position="right" text="Delete" android.position="popup" class="action-item"/>
         </ActionBar>
     </Page.actionBar>
 

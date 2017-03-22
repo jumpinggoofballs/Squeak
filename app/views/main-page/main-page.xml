@@ -11,6 +11,6 @@
                 <Label text="{{ nickname }}" textWrap="true" class="friendListRow" />
             </ListView.itemTemplate>
         </ListView>
-        <FAB:fab tap="{{ addFriend }}" row="1" rippleColor="#f1f1f1" class="fab-button" icon="emo_im_laughing" />
+        <FAB:fab tap="{{ addFriend }}" row="1" rippleColor="#f1f1f1" class="fab-button" ios.systemIcon="4" icon="emo_im_laughing" />
     </grid-layout>
 </Page>
