@@ -1,3 +1,6 @@
+import * as firebase from 'nativescript-plugin-firebase';
+import { Couchbase } from 'nativescript-couchbase';
+
 import { Friend, Message } from './app-data-model';
 
 ///////////////////////
@@ -13,7 +16,6 @@ import { Friend, Message } from './app-data-model';
 
 
 // Couchbase initial configuration
-import { Couchbase } from 'nativescript-couchbase';
 const DB_config = {
     db_name: 'couchbase.db',
 }
@@ -39,19 +41,46 @@ export var initAppData = function (): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
         var appDocumentRef = database.getDocument('squeak-app');
 
-        // If the database has already been initialised, resolve and get on with it
+        // If the database has already been initialised, re-login with Firebase and resolve
         if (appDocumentRef) {
-            resolve('App Data already initialised.');
+            // Then connect to firebase and log in with Annonymous Login
+            firebase.login({
+                type: firebase.LoginType.PASSWORD,
+                email: appDocumentRef.settings.randomIdentity.email,
+                password: appDocumentRef.settings.randomIdentity.password
+            })
+                .then(user => {
+
+                }, error => {
+                    alert('Error: ' + error);
+                });
+            resolve('App Data initialised.');           // do not wait for firebase - user should be able to see local data
         }
 
-        // Else create the initialisation document
+        // Else create new random/anonymous user, initalise the App Document with those details and proceed
         else {
-            database.createDocument({
-                appName: 'Squeak',
-                settings: {}
-            }, 'squeak-app');
+            var randomEmail = getRandomishString() + '@squeak.com';
+            var randomPassword = getRandomishString() + getRandomishString();
 
-            resolve('App Data created anew.');
+            firebase.createUser({
+                email: randomEmail,
+                password: randomPassword
+            })
+                .then(user => {
+                    database.createDocument({
+                        appName: 'Squeak',
+                        settings: {
+                            randomIdentity: {
+                                email: randomEmail,
+                                password: randomPassword
+                            }
+                        }
+                    }, 'squeak-app');
+                    alert('New Anonymous identity created!');
+                    resolve('App Data initialised.');
+                }, error => {
+                    alert('Error: ' + error);
+                });
         }
     });
 }
@@ -115,4 +144,10 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
         database.updateDocument(chatId, newFriendDocument);
         resolve('Sending');
     });
+}
+
+
+// Random utility functions
+function getRandomishString() {
+    return Math.random().toString(36).slice(2);
 }

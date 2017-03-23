@@ -19,7 +19,7 @@ firebase.init({
     // This is not needed here because of we have the Android/iOS config jsons from the Firebase dashboard
 }).then(
     (instance) => {
-        console.log("Firebase initialised successfully.");
+        // console.log("Firebase initialised successfully.");
     },
     (error) => {
         console.log("firebase.init error: " + error);
