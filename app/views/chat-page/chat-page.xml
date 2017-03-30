@@ -9,7 +9,7 @@
     </Page.actionBar>
 
     <!-- Chat messages list -->
-    <GridLayout id="test" rows="*, auto">
+    <GridLayout rows="*, auto">
         <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemLoading="onItemLoading" itemTap="onItemTap" separatorColor="transparent">
             <ListView.itemTemplate>
                 <StackLayout>
@@ -44,7 +44,7 @@
 
         <!-- Send new message bar-->
         <GridLayout row="1" columns="*, auto, auto" rows="*" class="message-bar">
-            <TextView col="0" hint="&#x000a;" text="{{ newMessageText }}" textWrap="true" itemTap="{{ alert }}"/>
+            <TextView col="0" hint="&#x000a;" text="{{ newMessageText }}" textWrap="true" />
             <Label col="1" class="triangle-right"/>
             <Button col="2" text="&#xf1d8;" tap="{{ sendMessage }}" class="fa-icon"/>
         </GridLayout>
