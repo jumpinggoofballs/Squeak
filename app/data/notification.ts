@@ -1,5 +1,4 @@
 import * as LocalNotifications from "nativescript-local-notifications";
-import * as dialogs from 'ui/dialogs';
 
 export function scheduleAlert() {
     LocalNotifications.schedule([{
@@ -19,7 +18,7 @@ export function notificationListenerInit() {
     LocalNotifications.addOnMessageReceivedCallback(
         function (notificationData) {
             // this will be changed to navigateTo function
-            dialogs.alert({
+            alert({
                 'title': "Notification Received",
                 'message': notificationData.title
             });
