@@ -10,41 +10,45 @@
 
     <!-- Chat messages list -->
     <GridLayout rows="*, auto">
-        <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemLoading="onItemLoading" itemTap="onItemTap" separatorColor="transparent">
-            <ListView.itemTemplate>
-                <StackLayout>
 
-                    <!-- Incoming messages template -->
-                    <StackLayout class="msg them" visibility="{{ !sourceIsMe ? 'visible' : 'collapsed' }}">
-                        <GridLayout columns="25, 3*, *">
-                            <Label col="0" class="triangle-left" text="col 3" />
-                            <FlexboxLayout col="1" flexDirection="row">
-                                <Label text="{{ messageText }}" class="msg_text" textWrap="true" />
-                            </FlexboxLayout>
-                        </GridLayout>
+        <FlexboxLayout flexDirection="column-reverse">
+            <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemLoading="onItemLoading" itemTap="onItemTap" separatorColor="transparent">
+                <ListView.itemTemplate>
+                    <StackLayout order="">
 
-                        <Label class="msg_timestamp" text="{{ messageTimeSent }}" />
+                        <!-- Incoming messages template -->
+                        <StackLayout class="msg them" visibility="{{ !sourceIsMe ? 'visible' : 'collapsed' }}">
+                            <GridLayout columns="25, 3*, *">
+                                <Label col="0" class="triangle-left" text="col 3" />
+                                <FlexboxLayout col="1" flexDirection="row">
+                                    <Label text="{{ messageText }}" class="msg_text" textWrap="true" />
+                                </FlexboxLayout>
+                            </GridLayout>
+
+                            <Label class="msg_timestamp" text="{{ messageTimeSent }}" />
+                        </StackLayout>
+
+                        <!-- Outgoing messages template -->
+                        <StackLayout class="msg me" visibility="{{ sourceIsMe ? 'visible' : 'collapsed' }}">
+                            <GridLayout columns="*, 3*, 25">
+                                <FlexboxLayout col="1" flexDirection="row-reverse">
+                                    <Label text="{{ messageText }}" class="msg_text" textWrap="true" horizontalAlignment="right"/>
+                                </FlexboxLayout>
+                                <Label col="2" class="triangle-right" text="col 3" />
+                            </GridLayout>
+
+                            <Label class="msg_timestamp" text="{{ messageTimeSent | fromNow }}" />
+                        </StackLayout>
+
                     </StackLayout>
+                </ListView.itemTemplate>
+            </ListView>
+        </FlexboxLayout>
 
-                    <!-- Outgoing messages template -->
-                    <StackLayout class="msg me" visibility="{{ sourceIsMe ? 'visible' : 'collapsed' }}">
-                        <GridLayout columns="*, 3*, 25">
-                            <FlexboxLayout col="1" flexDirection="row-reverse">
-                                <Label text="{{ messageText }}" class="msg_text" textWrap="true" horizontalAlignment="right"/>
-                            </FlexboxLayout>
-                            <Label col="2" class="triangle-right" text="col 3" />
-                        </GridLayout>
-
-                        <Label class="msg_timestamp" text="{{ messageTimeSent | fromNow }}" />
-                    </StackLayout>
-
-                </StackLayout>
-            </ListView.itemTemplate>
-        </ListView>
 
         <!-- Send new message bar-->
         <GridLayout row="1" columns="*, auto, auto" rows="*" class="message-bar">
-            <TextView col="0" hint="&#x000a;" text="{{ newMessageText }}" textWrap="true" />
+            <TextView col="0" hint="&#x000a;" text="{{ newMessageText }}" textWrap="true" tap="{{ reScrollWithDelay }}" />
             <Label col="1" class="triangle-right"/>
             <Button col="2" text="&#xf1d8;" tap="{{ sendMessage }}" class="fa-icon"/>
         </GridLayout>

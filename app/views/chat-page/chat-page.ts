@@ -2,6 +2,7 @@ import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
 import { ListView } from 'ui/list-view';
 import { navigateBack } from '../../app-navigation';
+import * as timer from 'timer';
 
 import * as appStore from '../../data/app-store';
 
@@ -16,17 +17,19 @@ class PageModel extends Observable {
         this.pageRef = pageRef;
         this.newMessageText = '';
         this.getPageData();
+        this.scrollMessagesList();
     }
 
     private getPageData() {
         var friendRef = this.pageRef.navigationContext.chatRef;
         var thisChatFriend = appStore.getFriend(friendRef);
         this.set('thisFriend', thisChatFriend);
-        this.scrollMessagesList();
     }
 
-    public alert() {
-        alert('hello');
+    public reScrollWithDelay() {
+        timer.setTimeout(() => {
+            this.scrollMessagesList();
+        }, 800);
     }
 
     public goBack() {
@@ -35,7 +38,7 @@ class PageModel extends Observable {
 
     public scrollMessagesList() {
         var listViewRef = <ListView>this.pageRef.getViewById('messagesList');
-        listViewRef.scrollToIndex(this.thisFriend.messages.length - 1);
+        listViewRef.android.smoothScrollToPosition(this.thisFriend.messages.length - 1);
     }
 
     public sendMessage() {
@@ -44,6 +47,7 @@ class PageModel extends Observable {
                 .then(() => {
                     this.set('newMessageText', '');
                     this.getPageData();
+                    this.reScrollWithDelay();
                 });
         }
     }
