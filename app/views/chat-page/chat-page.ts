@@ -28,7 +28,7 @@ class PageModel extends Observable {
 
     public reScrollWithDelay() {
         timer.setTimeout(() => {
-            this.scrollMessagesList();
+            this.scrollMessagesList('animate');
         }, 800);
     }
 
@@ -36,9 +36,13 @@ class PageModel extends Observable {
         navigateBack();
     }
 
-    public scrollMessagesList() {
+    public scrollMessagesList(animate?: string) {
         var listViewRef = <ListView>this.pageRef.getViewById('messagesList');
-        listViewRef.android.smoothScrollToPosition(this.thisFriend.messages.length - 1);
+        if (listViewRef.android && (animate === 'animate')) {
+            listViewRef.android.smoothScrollToPosition(this.thisFriend.messages.length - 1);
+        } else {
+            listViewRef.scrollToIndex(this.thisFriend.messages.length - 1);
+        }
     }
 
     public sendMessage() {
