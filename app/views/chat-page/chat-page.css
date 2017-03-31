@@ -81,12 +81,3 @@ ListView {
     color: #5c687c;
     font-size: 28;
 }
-
-#messagesList {
-    display: flex;
-    flex-direction: column-reverse;
-}
-
-#messagesList .message {
-    flex: 1;
-}
