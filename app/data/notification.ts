@@ -1,12 +1,12 @@
 import * as LocalNotifications from "nativescript-local-notifications";
 
-export function scheduleAlert() {
+export function alertNow(message: string) {
     LocalNotifications.schedule([{
         id: 0,
         title: 'title',
-        body: 'body',
+        body: message,
         ticker: 'ticker',
-        at: new Date(new Date().getTime() + 10 * 1000)
+        at: new Date()
     }]).then(() => {
         console.log('success');
     }, error => {
@@ -23,11 +23,10 @@ export function notificationListenerInit() {
                 'message': notificationData.title
             });
         }
-    ).then(
+    )
+        .then(
         function () {
             console.log("Listener added");
         }
         )
 }
-
-export var LocalNotificationsRef = LocalNotifications;

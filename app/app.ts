@@ -12,11 +12,19 @@ function fromNow(value: Date): any {
 }
 application.resources['fromNow'] = fromNow;
 
-// Initialise Firebase
+// Initialise Firebase + Notifications
+import * as notificationService from './data/notification';
+
 import firebase = require("nativescript-plugin-firebase");
 firebase.init({
-    // Optionally pass in properties for database, authentication and cloud messaging
-    // This is not needed here because of we have the Android/iOS config jsons from the Firebase dashboard
+    onPushTokenReceivedCallback: function (token) {
+        console.log("Firebase push token: " + token);
+    },
+    onMessageReceivedCallback: function (message: any) {
+        // not needed -- FCM already pops up a notification. But I will want to suppress that and do my own AFTER decryption.
+        // notificationService.notificationListenerInit();
+        // notificationService.alertNow(message.body);
+    }
 }).then(
     (instance) => {
         // console.log("Firebase initialised successfully.");
