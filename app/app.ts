@@ -12,27 +12,9 @@ function fromNow(value: Date): any {
 }
 application.resources['fromNow'] = fromNow;
 
-// Initialise Firebase + Notifications
-import * as notificationService from './data/notification';
-
-import firebase = require("nativescript-plugin-firebase");
-firebase.init({
-    onPushTokenReceivedCallback: function (token) {
-        console.log("Firebase push token: " + token);
-    },
-    onMessageReceivedCallback: function (message: any) {
-        // not needed -- FCM already pops up a notification. But I will want to suppress that and do my own AFTER decryption.
-        // notificationService.notificationListenerInit();
-        // notificationService.alertNow(message.body);
-    }
-}).then(
-    (instance) => {
-        // console.log("Firebase initialised successfully.");
-    },
-    (error) => {
-        console.log("firebase.init error: " + error);
-    }
-    );
+// Initialise Couchbase and Firebase + Notifications listeners
+import { initAppData } from './data/app-store';
+initAppData();
 
 // Start Application
 application.start();

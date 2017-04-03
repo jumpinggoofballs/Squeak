@@ -1,0 +1,3 @@
+# Write server side event listener functions in index.js then deploy like this:
+
+firebase deploy --only functions

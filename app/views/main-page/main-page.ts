@@ -30,7 +30,7 @@ class PageModel extends Observable {
 
 
     public addFriend() {
-        appStore.addFriend('add test friend')
+        appStore.addFriend('Test friend', 'friend firebase UID')
             .then(() => {
                 this.populateFriendsList();
             }, error => {
@@ -51,10 +51,5 @@ class PageModel extends Observable {
 // init the Friends data from the appStore and bind the PageModel to the page;
 export function pageLoaded(args: EventData) {
     var page = <Page>args.object;
-    appStore.initAppData()
-        .then(logMessage => {
-            page.bindingContext = new PageModel();
-        }, error => {
-            alert(error);
-        });
+    page.bindingContext = new PageModel();
 }

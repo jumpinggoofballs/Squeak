@@ -9,11 +9,11 @@ export class Message {
         this.messageText = messageText;
         this.sourceIsMe = sourceIsMe;
         this.messageStatus = 'Sending';
-        this.messageTimeSent = new Date();
     }
 }
 
 export class Friend {
+    firebaseId: string;
     nickname: string;
     unreadMessagesNumber: number;
     timeLastMessage: Date;
@@ -21,7 +21,8 @@ export class Friend {
     messages: Array<Message>;
     documentType: string;
 
-    constructor(nickname: string) {
+    constructor(nickname: string, firebaseId: string) {
+        this.firebaseId = firebaseId;
         this.nickname = nickname;
         this.unreadMessagesNumber = 0;
         this.timeLastMessage = new Date();

@@ -2,6 +2,7 @@ node_modules
 platforms
 hooks
 .vscode
+firebase_functions/functions/node_modules
 app/App_Resources/Android/google-services.json
 app/App_Resources/iOS/GoogleService-Info.plist
 # Ignores compiled TypeScript files
