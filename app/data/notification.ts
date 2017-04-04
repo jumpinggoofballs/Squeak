@@ -8,19 +8,19 @@ export function alertNow(message: string) {
         ticker: 'ticker',
         at: new Date()
     }]).then(() => {
-        console.log('success');
+        // console.log('success');
     }, error => {
         console.log('error');
     });
 }
 
-export function notificationListenerInit() {
+export function notificationListenerInit(messageAuthor: string) {
     LocalNotifications.addOnMessageReceivedCallback(
         function (notificationData) {
             // this will be changed to navigateTo function
             alert({
                 'title': "Notification Received",
-                'message': notificationData.title
+                'message': 'Message Author: ' + messageAuthor
             });
         }
     )

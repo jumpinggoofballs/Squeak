@@ -1,5 +1,6 @@
 export class Message {
     messageText: string;
+    messageAuthor: string;
     messageTimeSent: Date;
     messageTimeReceived: Date;
     messageStatus: string;

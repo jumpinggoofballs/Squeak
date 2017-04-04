@@ -2,6 +2,7 @@ import * as firebase from 'nativescript-plugin-firebase';
 import { Couchbase } from 'nativescript-couchbase';
 
 import { Friend, Message } from './app-data-model';
+import * as notificationService from './notification';
 
 ///////////////////////
 // API:
@@ -47,9 +48,11 @@ export var initAppData = function (): Promise<{ logMessage: string }> {
         firebase.init({
 
             onMessageReceivedCallback: function (message: any) {
-                // not needed -- FCM already pops up a notification. But I will want to suppress that and do my own AFTER decryption.
-                // notificationService.notificationListenerInit();
-                // notificationService.alertNow(message.body);
+                retrieveMessage(message.targetUser, message.messageToFetchRef)
+                    .then((retrieved: Message) => {
+                        notificationService.notificationListenerInit(retrieved.messageAuthor);
+                        notificationService.alertNow('new message');
+                    });
             },
 
             onPushTokenReceivedCallback: function (token) {
@@ -183,21 +186,68 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
         var newFriendDocument = database.getDocument(chatId);
         var newMessage = new Message(messageText, true);
 
+        // store the message in memory        
+        newMessage.messageTimeSent = new Date();
+        newMessage.messageStatus = 'Sending...';
+        var newMessageIndex = newFriendDocument.messages.push(newMessage);
+        database.updateDocument(chatId, newFriendDocument);
+
         // push message to firebase
         firebase.push(
-            newFriendDocument.firebaseId + '/z',
+            '/users/' + newFriendDocument.firebaseId + '/z',
             {
-                sentBy: database.getDocument('squeak-app').settings.firebaseUID,
+                messageAuthor: database.getDocument('squeak-app').settings.firebaseUID,
                 messageText: newMessage.messageText,
                 messageTimeSent: firebase.ServerValue.TIMESTAMP
             }
-        );
+        )
+            // then push notification of the message sent    
+            .then(pushResponse => {
+                const sentMessageRef = pushResponse.key;
+                firebase.push(
+                    'notifications',
+                    {
+                        messageRef: sentMessageRef,
+                        targetUser: newFriendDocument.firebaseId
+                    }
+                )
 
-        // then save it in the local database and resolve
-        newMessage.messageTimeSent = new Date();
-        newFriendDocument.messages.push(newMessage);
-        database.updateDocument(chatId, newFriendDocument);
-        resolve('Sending');
+                    //then update the local state    
+                    .then(() => {
+                        newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
+                        database.updateDocument(chatId, newFriendDocument);
+                        resolve('Message Sent');
+
+                    }, error => {
+                        newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
+                        database.updateDocument(chatId, newFriendDocument);
+                        alert(error);
+                        reject();
+                    });
+
+            }, error => {
+                newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
+                database.updateDocument(chatId, newFriendDocument);
+                alert(error);
+                reject();
+            });
+    });
+}
+
+var retrieveMessage = function (targetUser: string, messageRef: string): Promise<Object> {
+    return new Promise((resolve, reject) => {
+        var myMessagePath = 'users/' + targetUser + '/z/' + messageRef;
+        firebase.addValueEventListener(snapshot => {
+            var message = snapshot.value;
+            console.dump(message);
+            firebase.setValue(myMessagePath, null).then(() => {
+                resolve(message);
+            });
+        }, myMessagePath)
+            .catch(error => {
+                alert(error);
+                reject();
+            });
     });
 }
 

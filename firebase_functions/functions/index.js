@@ -5,6 +5,7 @@ admin.initializeApp(functions.config().firebase);
 exports.pushNotify = functions.database.ref('/notifications/{notificationId}').onWrite(event => {
 
     const snapshot = event.data;
+    const notificationId = event.params.notificationId;
 
     // abort if the data has not been mutated (== the .previous.value of the snapshot is null )
     if (snapshot.previous.val()) {
@@ -12,11 +13,14 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
     }
 
     // else: get the target user firebase UID 
-    const targetUser = snapshot.val();
+    const targetUser = snapshot.val().targetUser;
+    const messageRef = snapshot.val().messageRef;
+
     const payload = {
-        notification: {
-            title: 'Squeak',
-            body: 'New secure message received!'
+        data: {
+            targetUser: targetUser,
+            messageToFetchRef: messageRef,
+            notificationId: notificationId
         }
     }
 
@@ -26,6 +30,10 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
 
         // send the pre-defined payload to the device identified by the FCM token
         const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload);
+        return admin.messaging().sendToDevice(token, payload).then(() => {
+
+            // remove the notification record
+            admin.database().ref('/notifications').child(notificationId).remove();
+        });
     });
 });
