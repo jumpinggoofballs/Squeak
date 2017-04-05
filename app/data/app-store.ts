@@ -49,9 +49,9 @@ export var initAppData = function (): Promise<{ logMessage: string }> {
 
             onMessageReceivedCallback: function (message: any) {
                 retrieveMessage(message.targetUser, message.messageToFetchRef)
-                    .then((retrieved: Message) => {
-                        notificationService.notificationListenerInit(retrieved.messageAuthor);
-                        notificationService.alertNow('new message');
+                    .then(sender => {
+                        notificationService.notificationListenerInit(sender.id);
+                        notificationService.alertNow(sender.nickname);
                     });
             },
 
@@ -150,11 +150,11 @@ export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }>
     });
 }
 
-export var addFriend = function (nickname: string, firebaseId: string): Promise<{ logMessage: string }> {
+export var addFriend = function (nickname: string): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
-        var newFriend = new Friend(nickname, firebaseId);
-        database.createDocument(newFriend);
+        var newFriend = new Friend(nickname);
+        database.createDocument(newFriend, 'qwucLynmR4diFTHr2SRevheaS1M2');
 
         resolve('Added New Friend');
     });
@@ -194,7 +194,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
 
         // push message to firebase
         firebase.push(
-            '/users/' + newFriendDocument.firebaseId + '/z',
+            '/users/' + newFriendDocument._id + '/z',
             {
                 messageAuthor: database.getDocument('squeak-app').settings.firebaseUID,
                 messageText: newMessage.messageText,
@@ -208,7 +208,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
                     'notifications',
                     {
                         messageRef: sentMessageRef,
-                        targetUser: newFriendDocument.firebaseId
+                        targetUser: newFriendDocument._id
                     }
                 )
 
@@ -234,15 +234,36 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
     });
 }
 
-var retrieveMessage = function (targetUser: string, messageRef: string): Promise<Object> {
+var retrieveMessage = function (targetUser: string, messageRef: string): Promise<{ id: string, nickname: string }> {
     return new Promise((resolve, reject) => {
         var myMessagePath = 'users/' + targetUser + '/z/' + messageRef;
         firebase.addValueEventListener(snapshot => {
-            var message = snapshot.value;
-            console.dump(message);
-            firebase.setValue(myMessagePath, null).then(() => {
-                resolve(message);
-            });
+            // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.      
+            if (snapshot.value) {
+                var received = snapshot.value;
+
+                // create new Message() for local consumption
+                var newMessage = new Message('', false);
+                newMessage.messageText = received.messageText;
+                newMessage.messageTimeSent = new Date(received.messageTimeSent);
+                newMessage.messageTimeReceived = new Date();
+
+                var targetFriend = getFriend(received.messageAuthor);
+                targetFriend.messages.push(newMessage);
+                targetFriend.timeLastMessage = newMessage.messageTimeReceived;
+                targetFriend.lastMessagePreview = received.messageText;             // this could be trimmed or something
+                targetFriend.unreadMessagesNumber += 1;
+
+                console.dump(snapshot);
+
+                database.updateDocument(received.messageAuthor, targetFriend);
+                firebase.setValue(myMessagePath, null).then(() => {
+                    resolve({
+                        id: received.messageAuthor,
+                        nickname: targetFriend.nickname
+                    });
+                });
+            }
         }, myMessagePath)
             .catch(error => {
                 alert(error);

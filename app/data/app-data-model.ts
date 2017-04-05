@@ -1,6 +1,5 @@
 export class Message {
     messageText: string;
-    messageAuthor: string;
     messageTimeSent: Date;
     messageTimeReceived: Date;
     messageStatus: string;
@@ -9,7 +8,6 @@ export class Message {
     constructor(messageText, sourceIsMe) {
         this.messageText = messageText;
         this.sourceIsMe = sourceIsMe;
-        this.messageStatus = 'Sending';
     }
 }
 
@@ -22,8 +20,7 @@ export class Friend {
     messages: Array<Message>;
     documentType: string;
 
-    constructor(nickname: string, firebaseId: string) {
-        this.firebaseId = firebaseId;
+    constructor(nickname: string) {
         this.nickname = nickname;
         this.unreadMessagesNumber = 0;
         this.timeLastMessage = new Date();

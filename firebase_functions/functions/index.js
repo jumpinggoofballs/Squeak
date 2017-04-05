@@ -12,6 +12,11 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
         return;
     }
 
+    // also abort if the data has just been cleaned up by the client
+    if (!snapshot.val()) {
+        return;
+    }
+
     // else: get the target user firebase UID 
     const targetUser = snapshot.val().targetUser;
     const messageRef = snapshot.val().messageRef;

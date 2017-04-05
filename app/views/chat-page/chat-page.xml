@@ -25,7 +25,7 @@
                                 </FlexboxLayout>
                             </GridLayout>
 
-                            <Label class="msg_timestamp" text="{{ messageTimeSent }}" />
+                            <Label class="msg_timestamp" text="{{ messageTimeSent | fromNow }}" />
                         </StackLayout>
 
                         <!-- Outgoing messages template -->

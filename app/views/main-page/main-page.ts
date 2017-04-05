@@ -30,7 +30,7 @@ class PageModel extends Observable {
 
 
     public addFriend() {
-        appStore.addFriend('Test friend', '0SBqnQoyXyWZWr9lrQ5SRtry1jL2')
+        appStore.addFriend('Test friend')
             .then(() => {
                 this.populateFriendsList();
             }, error => {

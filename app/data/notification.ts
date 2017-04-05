@@ -1,11 +1,11 @@
 import * as LocalNotifications from "nativescript-local-notifications";
+import { navigateTo } from '../app-navigation';
 
-export function alertNow(message: string) {
+export function alertNow(messageSender: string) {
     LocalNotifications.schedule([{
         id: 0,
-        title: 'title',
-        body: message,
-        ticker: 'ticker',
+        title: 'Squeak',
+        body: 'You have a new message from ' + messageSender,
         at: new Date()
     }]).then(() => {
         // console.log('success');
@@ -14,14 +14,10 @@ export function alertNow(message: string) {
     });
 }
 
-export function notificationListenerInit(messageAuthor: string) {
+export function notificationListenerInit(messageSender: string) {
     LocalNotifications.addOnMessageReceivedCallback(
         function (notificationData) {
-            // this will be changed to navigateTo function
-            alert({
-                'title': "Notification Received",
-                'message': 'Message Author: ' + messageAuthor
-            });
+            navigateTo('chat-page', messageSender);
         }
     )
         .then(
