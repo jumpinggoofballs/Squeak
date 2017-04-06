@@ -50,8 +50,7 @@ export var initAppData = function (): Promise<{ logMessage: string }> {
             onMessageReceivedCallback: function (message: any) {
                 retrieveMessage(message.targetUser, message.messageToFetchRef)
                     .then(sender => {
-                        notificationService.notificationListenerInit(sender.id);
-                        notificationService.alertNow(sender.nickname);
+                        notificationService.alertNow(sender.nickname, sender.id);
                     });
             },
 
@@ -253,8 +252,6 @@ var retrieveMessage = function (targetUser: string, messageRef: string): Promise
                 targetFriend.timeLastMessage = newMessage.messageTimeReceived;
                 targetFriend.lastMessagePreview = received.messageText;             // this could be trimmed or something
                 targetFriend.unreadMessagesNumber += 1;
-
-                console.dump(snapshot);
 
                 database.updateDocument(received.messageAuthor, targetFriend);
                 firebase.setValue(myMessagePath, null).then(() => {

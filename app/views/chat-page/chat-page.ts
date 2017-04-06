@@ -18,6 +18,11 @@ class PageModel extends Observable {
         this.newMessageText = '';
         this.getPageData();
         this.scrollMessagesList();
+
+        pageRef.on('newMessageReceived', () => {
+            this.getPageData();
+            this.reScrollWithDelay();
+        });
     }
 
     private getPageData() {
