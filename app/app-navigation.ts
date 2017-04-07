@@ -15,3 +15,11 @@ export function navigateBack() {
     const topFrameModule = frameModule.topmost();
     topFrameModule.goBack();
 }
+
+export function initNavigation() {
+    const topFrameModule = frameModule.topmost();
+    topFrameModule.navigate({
+        moduleName: 'views/main-page/main-page',
+        clearHistory: true
+    });
+}

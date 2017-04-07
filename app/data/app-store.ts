@@ -36,97 +36,121 @@ database.createView('friends', '1', (document, emitter) => {
 
 // General App details data and Database initalisation
 
-export var initAppData = function (): Promise<{ logMessage: string }> {
-    return new Promise((resolve, reject) => {
+var appDocumentRef = database.getDocument('squeak-app');
 
-        // 1. Initialise / fetch the local Couchbase database and create an app settings document
-        var appDocumentRef = database.getDocument('squeak-app');
+export function checkAppDataAlreadyInitialised(): Boolean {
+    if (appDocumentRef) return true;
+    return false;
+}
 
-        // 2. Initialise Firebase + get push messaging token + set up message received handling
-        var firebaseMessagingToken;
-        var userUID;
-        firebase.init({
+export class AppData {
 
-            onMessageReceivedCallback: function (message: any) {
-                retrieveMessage(message.targetUser, message.messageToFetchRef)
-                    .then(sender => {
-                        notificationService.alertNow(sender.nickname, sender.id);
-                    });
-            },
+    private firebaseInit = function (): Promise<{ token: string }> {
+        return new Promise((resolve, reject) => {
 
-            onPushTokenReceivedCallback: function (token) {
+            var firebaseMessagingToken;
+            firebase.init({
 
-                firebaseMessagingToken = token;
-
-                // If the Couchbase database has already been initialised, re-login with Firebase and resolve
-                if (appDocumentRef) {
-                    // Connect to firebase and log in with Annonymous Login
-                    firebase.login({
-                        type: firebase.LoginType.PASSWORD,
-                        email: appDocumentRef.settings.randomIdentity.email,
-                        password: appDocumentRef.settings.randomIdentity.password
-                    })
-                        .then(user => {
-
-                        }, error => {
-                            alert('Error: ' + error);
+                onMessageReceivedCallback: function (message: any) {
+                    retrieveMessage(message.targetUser, message.messageToFetchRef)
+                        .then(sender => {
+                            notificationService.alertNow(sender.nickname, sender.id);
                         });
-                    resolve('App Data initialised.');           // do not wait for firebase - user should be able to see local data
+                },
+
+                onPushTokenReceivedCallback: function (token) {
+                    firebaseMessagingToken = token;
+                    console.log('firebaseInit: ' + firebaseMessagingToken)
+                    resolve(firebaseMessagingToken);
                 }
-
-                // Else create new random/anonymous user, initalise the App Document with those details and proceed
-                else {
-                    var randomEmail = getRandomishString() + '@' + getRandomishString() + '.com';
-                    var randomPassword = getRandomishString() + getRandomishString();
-
-                    console.log('creating user... ');
-                    firebase.createUser({
-                        email: randomEmail,
-                        password: randomPassword
-                    }).then(user => {
-
-                        console.log('user created. creating local document... ');
-                        userUID = user.key;
-                        database.createDocument({
-                            appName: 'Squeak',
-                            settings: {
-                                firebaseUID: userUID,
-                                fcmMessagingToken: firebaseMessagingToken,
-                                randomIdentity: {
-                                    email: randomEmail,
-                                    password: randomPassword
-                                }
-                            }
-                        }, 'squeak-app');
-
-                        console.log('local document created. setting key values to firebase...');
-                        firebase.setValue(
-                            '/users/' + userUID,
-                            {
-                                k: '',
-                                t: firebaseMessagingToken,
-                                x: [],
-                                z: []
-                            }
-                        ).then(() => {
-
-                            console.log('values set to firebase. Init success!');
-                            alert('New Anonymous identity created!');
-                            resolve('App Data initialised.');
-                        }, error => {
-                            alert('Failed to register Anonymous identity on remote servers ' + error);
-                        });
-                    }, error => {
-                        alert('Failed to Initialise local Coucbase data: ' + error);
-                    });
-                }
-            }
-        }).then(instance => {
-
-        }, error => {
-            alert("Firebase failed to Initialise: " + error);
+            }).then(() => {
+                //
+            }, error => {
+                alert(error);
+            });
         });
-    });
+    }
+
+    public startAppData() {
+        return new Promise((resolve, reject) => {
+
+            this.firebaseInit().then(firebaseMessagingToken => {
+                firebase.login({
+                    type: firebase.LoginType.PASSWORD,
+                    email: appDocumentRef.settings.randomIdentity.email,
+                    password: appDocumentRef.settings.randomIdentity.password
+                })
+                    .then(user => {
+
+                    }, error => {
+                        alert('Error: ' + error);
+                    });
+                resolve('App Initialised!');           // do not wait for firebase - user should be able to see local data
+            })
+        });
+    }
+
+    public generateRandomFirebaseUser() {
+        return new Promise((resolve, reject) => {
+
+            this.firebaseInit().then(firebaseMessagingToken => {
+                var randomEmail = getRandomishString() + '@' + getRandomishString() + '.com';
+                var randomPassword = getRandomishString() + getRandomishString();
+
+                firebase.createUser({
+                    email: randomEmail,
+                    password: randomPassword
+                }).then(user => {
+                    resolve({
+                        firebaseUID: user.key,
+                        email: randomEmail,
+                        password: randomPassword,
+                        firebaseMessagingToken: firebaseMessagingToken
+                    });
+                }, error => {
+                    alert('Failed to register Anonymous identity on remote servers ' + error);
+                });
+            });
+        });
+    }
+
+    public saveRandomUserLocally(user) {
+        return new Promise((resolve, reject) => {
+            database.createDocument({
+                appName: 'Squeak',
+                settings: {
+                    firebaseUID: user.firebaseUID,
+                    fcmMessagingToken: user.firebaseMessagingToken,
+                    randomIdentity: {
+                        email: user.email,
+                        password: user.password
+                    }
+                }
+            }, 'squeak-app');
+            resolve({
+                userUID: user.firebaseUID,
+                firebaseMessagingToken: user.firebaseMessagingToken
+            });
+        });
+    }
+
+    public updateFirebaseRecords(user) {
+        return new Promise((resolve, reject) => {
+            firebase.setValue(
+                '/users/' + user.userUID,
+                {
+                    k: '',
+                    t: user.firebaseMessagingToken,
+                    x: [],
+                    z: []
+                }
+            ).then(() => {
+                resolve('App Data initialised.');
+            }, error => {
+                alert('Failed to set User details on remote servers ' + error);
+            });
+        });
+    }
 }
 
 
@@ -153,7 +177,7 @@ export var addFriend = function (nickname: string): Promise<{ logMessage: string
     return new Promise((resolve, reject) => {
 
         var newFriend = new Friend(nickname);
-        database.createDocument(newFriend, 'qwucLynmR4diFTHr2SRevheaS1M2');
+        database.createDocument(newFriend, 'kzl3kku7y6Mk4t8ntCNfvkYckBm1');
 
         resolve('Added New Friend');
     });

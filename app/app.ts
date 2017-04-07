@@ -1,6 +1,5 @@
 ﻿// Application settings
 import application = require('application');
-application.mainModule = './views/main-page/main-page';
 application.cssFile = './app.css';
 
 // MomentJS made available globally
@@ -12,11 +11,18 @@ function fromNow(value: Date): any {
 }
 application.resources['fromNow'] = fromNow;
 
-// Initialise Couchbase and Firebase + Notifications listeners
-import { initAppData } from './data/app-store';
-initAppData();
+// Conditionally Load / Initialise Couchbase and Firebase + Notifications listeners, and navigate to the right screen
+import { checkAppDataAlreadyInitialised, AppData } from './data/app-store';
 
-// Start Application
+if (checkAppDataAlreadyInitialised()) {
+    application.mainModule = './views/main-page/main-page';
+    const appData = new AppData();
+    appData.startAppData();
+} else {
+    application.mainModule = './views/welcome-page/welcome-page';
+};
+
+// Conditionally Start Application
 application.start();
 
 /*

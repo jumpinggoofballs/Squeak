@@ -1,0 +1,23 @@
+<Page class="page" actionBarHidden="true" loaded="pageLoaded">
+    <GridLayout rows="*, auto, *" columns="*, 2*, *">
+        <StackLayout row="1" col="1">
+            <Label text="Welcome to Squeak!" textWrap="true" class="h1"/>
+            <Label text="*A secure chat app&#xA;" textWrap="true" class="subtext"/>
+
+            <Label visibility="{{ introTextVisibility }}" text="To be able to use this app, we must first generate an anonymous identity for you and corresponding cryptographic keys." textWrap="true" class="instructions"/>
+            <Label visibility="{{ introTextVisibility }}" text="Press the Get Started button to continue... &#xA;" textWrap="true" class="instructions"/>
+            <Button visibility="{{ introTextVisibility }}" text="Get Started" tap="{{ initFirebase }}"/>
+
+            <Label visibility="{{ generateRandomFirebaseUserTextVisibility }}" text="User created. Setting local keys..." textWrap="true" class="successMessage"/>
+            <Label visibility="{{ saveRandomUserLocallyUserTextVisibility }}" text="Local keys set. Registering keys with server..." textWrap="true" class="successMessage"/>
+            <Label visibility="{{ userCreatedSuccessfullyTextVisibility }}" text="All OK! You may begin: &#xA;" textWrap="true" class="successMessage"/>
+
+            <ActivityIndicator busy="{{ spinnerVisible }}" />
+
+            <Button visibility="{{ userCreatedSuccessfullyTextVisibility }}" text="Go to Chat" tap="{{ goToStartPage }}" class="successButton"/>
+
+            <Label visibility="{{ errorMessageTextVisibility }}" text="Somethings has gone wrong! &#xA;Error Details: &#xA;{{ errorText }}" textWrap="true" class="errorMessage"/>
+            <Label visibility="{{ errorMessageTextVisibility }}" text="In most cases, one of the following steps can remedy the problem: &#xA; 1. Remove all app data from the App Settings on your phone and try again. &#xA; 2. Uninstall and re-install the app. &#xA;&#xA; If neither of these steps is successful, please contact the developer via your phone's app store.'" textWrap="true" class="helpMessage"/>
+        </StackLayout>
+    </GridLayout>
+</Page>
