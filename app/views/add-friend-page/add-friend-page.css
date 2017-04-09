@@ -1,0 +1,14 @@
+GridLayout {
+    background-color: #5c687c;
+    color: white;
+    text-align: center;
+}
+
+Label {
+    margin-bottom: 20;
+}
+
+Button {
+    background-color: #66BB6A;
+    border-radius: 10;
+}

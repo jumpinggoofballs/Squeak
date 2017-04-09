@@ -1,0 +1,33 @@
+GridLayout {
+    background-color: #5c687c;
+    color: white;
+    text-align: center;
+}
+
+FlexboxLayout {
+    align-content: center;
+    justify-content: center;
+    padding: 30;
+}
+
+TextField{
+    padding: none;
+    margin-bottom: 20;
+}
+
+Button {
+    width: 150;
+}
+
+Label {
+    margin-bottom: 20;
+}
+
+Button {
+    background-color: #66BB6A;
+    border-radius: 10;
+}
+
+.edit_nickname {
+    margin: 20;
+}

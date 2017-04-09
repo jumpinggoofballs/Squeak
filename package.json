@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "moment": "^2.18.0",
+    "nativescript-bluetooth": "^1.1.5",
     "nativescript-couchbase": "^1.0.17",
     "nativescript-floatingactionbutton": "^2.2.7",
     "nativescript-local-notifications": "^1.2.1",

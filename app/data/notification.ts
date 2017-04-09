@@ -12,18 +12,20 @@ export function alertNow(messageSender: string, messageSenderId: string) {
             eventName: 'newMessageReceived',
             object: this
         });
-    } else {
-        // else schedule notification
-        LocalNotifications.schedule([{
-            id: randomNotificationId,
-            title: 'Squeak',
-            body: 'You have a new message from ' + messageSender
-        }]).then(() => {
-            notificationListenerInit(messageSenderId);
-        }, error => {
-            console.log('error');
-        });
+
+        // should also notify to update data if on the main-page
+
     }
+
+    LocalNotifications.schedule([{
+        id: randomNotificationId,
+        title: 'Squeak',
+        body: 'You have a new message from ' + messageSender
+    }]).then(() => {
+        notificationListenerInit(messageSenderId);
+    }, error => {
+        console.log('error');
+    });
 }
 
 function notificationListenerInit(messageSenderId: string) {

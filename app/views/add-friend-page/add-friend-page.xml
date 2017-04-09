@@ -1,0 +1,10 @@
+<Page class="page" actionBarHidden="true" loaded="pageLoaded">
+    <GridLayout rows="*, auto, *" columns="*, 2*, *">
+        <StackLayout row="1" col="1">
+            <Label text="Add Friend" textWrap="true" class="h1"/>
+
+            <Button text="Test" tap="{{ scanForFriend }}" />
+
+        </StackLayout>
+    </GridLayout>
+</Page>

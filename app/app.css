@@ -1,4 +1,9 @@
-﻿.btn {
+﻿Button {
+    background-color: #66BB6A;
+    border-radius: 10;
+}
+
+.btn {
     background-color: #5c687c;
     color: white;
 }
@@ -23,6 +28,10 @@
     background-color: #5c687c; 
     horizontal-align: right; 
     vertical-align: bottom; 
+}
+
+.avatar {
+    border-radius: 50;
 }
 
 /*

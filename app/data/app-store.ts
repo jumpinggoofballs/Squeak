@@ -47,8 +47,6 @@ export class AppData {
 
     private firebaseInit = function (): Promise<{ token: string }> {
         return new Promise((resolve, reject) => {
-
-            var firebaseMessagingToken;
             firebase.init({
 
                 onMessageReceivedCallback: function (message: any) {
@@ -59,9 +57,7 @@ export class AppData {
                 },
 
                 onPushTokenReceivedCallback: function (token) {
-                    firebaseMessagingToken = token;
-                    console.log('firebaseInit: ' + firebaseMessagingToken)
-                    resolve(firebaseMessagingToken);
+                    resolve(token);
                 }
             }).then(() => {
                 //
@@ -93,6 +89,8 @@ export class AppData {
     public generateRandomFirebaseUser() {
         return new Promise((resolve, reject) => {
 
+            database.deleteDocument('squeak-app');
+
             this.firebaseInit().then(firebaseMessagingToken => {
                 var randomEmail = getRandomishString() + '@' + getRandomishString() + '.com';
                 var randomPassword = getRandomishString() + getRandomishString();
@@ -119,6 +117,8 @@ export class AppData {
             database.createDocument({
                 appName: 'Squeak',
                 settings: {
+                    avatarPath: '~/images/avatar.png',
+                    nickname: 'Squeak',
                     firebaseUID: user.firebaseUID,
                     fcmMessagingToken: user.firebaseMessagingToken,
                     randomIdentity: {
@@ -154,6 +154,19 @@ export class AppData {
 }
 
 
+// Local account related data
+
+export function fetchLocalAccountDetails() {
+    return database.getDocument('squeak-app');
+}
+
+export function updateLocalNickname(nickname) {
+    var localSettingsDocument = database.getDocument('squeak-app');
+    localSettingsDocument.settings.nickname = nickname;
+    database.updateDocument('squeak-app', localSettingsDocument);
+}
+
+
 // Friends List related data
 
 export function getFriend(friendId: string) {
@@ -177,7 +190,7 @@ export var addFriend = function (nickname: string): Promise<{ logMessage: string
     return new Promise((resolve, reject) => {
 
         var newFriend = new Friend(nickname);
-        database.createDocument(newFriend, 'kzl3kku7y6Mk4t8ntCNfvkYckBm1');
+        database.createDocument(newFriend, 'DEqo7u1tMMgkG2dUwI72DIjveKf2');
 
         resolve('Added New Friend');
     });
