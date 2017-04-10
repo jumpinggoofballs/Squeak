@@ -1,7 +1,8 @@
 import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
-import { navigateBack } from '../../app-navigation';
+import * as SocialShare from "nativescript-social-share";
 
+import { navigateBack } from '../../app-navigation';
 import { fetchLocalAccountDetails, updateLocalNickname } from '../../data/app-store';
 
 class PageModel extends Observable {
@@ -10,6 +11,7 @@ class PageModel extends Observable {
     private nickname;
     private avatarPath;
     private nicknameEditMode;
+    private myCode;
 
     constructor(pageRef: any) {
         super();
@@ -18,8 +20,16 @@ class PageModel extends Observable {
         this.nickname = 'Squaaaaa';
         this.avatarPath = '~/images/avatar.png';
         this.nicknameEditMode = false;
+        this.myCode = '';
 
         this.setLocalAccountDetails();
+    }
+
+    setLocalAccountDetails() {
+        var localAccountDocument = fetchLocalAccountDetails();
+        this.set('nickname', localAccountDocument.settings.nickname);
+        this.set('avatarPath', localAccountDocument.settings.avatarPath);
+        this.set('myCode', localAccountDocument.settings.firebaseUID);
     }
 
     toggleNicknameEdit() {
@@ -30,12 +40,11 @@ class PageModel extends Observable {
     saveNickname() {
         updateLocalNickname(this.nickname);
         this.toggleNicknameEdit();
+        this.pageRef.getViewById('goofball').dismissSoftInput();
     }
 
-    setLocalAccountDetails() {
-        var localAccountDocument = fetchLocalAccountDetails();
-        this.set('nickname', localAccountDocument.settings.nickname);
-        this.set('avatarPath', localAccountDocument.settings.avatarPath);
+    shareCode() {
+        SocialShare.shareText('Hey, my Squeak code is: ' + this.myCode);
     }
 
     goBack() {

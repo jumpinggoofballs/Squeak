@@ -5,22 +5,29 @@
         </ActionBar>
     </Page.actionBar>
 
-    <GridLayout rows="auto, auto, *" columns="*, *, *">
-        <Label row="0" colSpan="3" text="&#xA;My Account&#xA;" textWrap="true" class="h1"/>
-        <StackLayout row="1" col="1">
-            <Label text="Avatar   &#xf040;" textWrap="true" class="h2 fa-icon"/>
-            <Image src="{{ avatarPath }}" stretch="fill" class="avatar" />
-        </StackLayout>
-        <StackLayout row="2" colSpan="3">
-            <FlexboxLayout orientation="horizontal" tap="{{ toggleNicknameEdit }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}">
-                <Label text="Nickname:  " textWrap="true" class="h2" />
-                <Label text="{{ nickname }}" textWrap="true" class="h2" />
-                <Label text="   &#xf040;" textWrap="true" class="h2 fa-icon" />
-            </FlexboxLayout>
-            <GridLayout rows="auto, auto" columns="*, 2*, *" visibility="{{ nicknameEditMode ? 'visible' : 'collapsed' }}" class="edit_nickname">
-                <TextField row="0" col="1" id="goofball" text="{{ nickname }}" class="h2" />
-                <Button row="1" col="1" text="Save" tap="{{ saveNickname }}" />
-            </GridLayout>
-        </StackLayout>
-    </GridLayout>
+    <ScrollView>
+        <GridLayout rows="auto, auto, *" columns="*, *, *">
+            <Label row="0" colSpan="3" text="&#xA;My Account&#xA;" textWrap="true" class="h1"/>
+            <StackLayout row="1" col="1">
+                <Label text="Avatar   &#xf040;" textWrap="true" class="h2 fa-icon"/>
+                <Image src="{{ avatarPath }}" stretch="fill" class="avatar" />
+            </StackLayout>
+            <StackLayout row="2" colSpan="3">
+                <FlexboxLayout orientation="horizontal" tap="{{ toggleNicknameEdit }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}">
+                    <Label text="Nickname:  " textWrap="true" class="h2" />
+                    <Label text="{{ nickname }}" textWrap="true" class="h2" />
+                    <Label text="   &#xf040;" textWrap="true" class="h2 fa-icon" />
+                </FlexboxLayout>
+                <FlexboxLayout tap="{{ shareCode }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}">
+                    <Label text="Share code:  " textWrap="true" class="h2" />
+                    <Label text="{{ myCode }}" textWrap="true" class="h2" />
+                </FlexboxLayout>
+                <Label text="&#xf14d;" textWrap="true" class="share fa-icon" tap="{{ shareCode }}"/>
+                <GridLayout rows="auto, auto" columns="*, 2*, *" visibility="{{ nicknameEditMode ? 'visible' : 'collapsed' }}" class="edit_nickname">
+                    <TextField row="0" col="1" id="goofball" text="{{ nickname }}" class="h2" />
+                    <Button row="1" col="1" text="Save" tap="{{ saveNickname }}" />
+                </GridLayout>
+            </StackLayout>
+        </GridLayout>
+    </ScrollView>
 </Page>

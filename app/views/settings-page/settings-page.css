@@ -31,3 +31,8 @@ Button {
 .edit_nickname {
     margin: 20;
 }
+
+.share {
+    font-size: 50;
+    color: #66BB6A;
+}

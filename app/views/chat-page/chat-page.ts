@@ -57,6 +57,7 @@ class PageModel extends Observable {
                     this.set('newMessageText', '');
                     this.getPageData();
                     this.reScrollWithDelay();
+                    this.pageRef.getViewById('newMessageInput').dismissSoftInput();
                 });
         }
     }

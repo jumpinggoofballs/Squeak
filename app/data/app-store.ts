@@ -186,11 +186,11 @@ export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }>
     });
 }
 
-export var addFriend = function (nickname: string): Promise<{ logMessage: string }> {
+export var addFriend = function (nickname: string, firebaseId: string): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
         var newFriend = new Friend(nickname);
-        database.createDocument(newFriend, 'DEqo7u1tMMgkG2dUwI72DIjveKf2');
+        database.createDocument(newFriend, firebaseId);
 
         resolve('Added New Friend');
     });

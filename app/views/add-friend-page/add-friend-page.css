@@ -1,4 +1,11 @@
+ScrollView {
+    background-color: #4a505b;
+    color: white;
+    text-align: center;
+}
+
 GridLayout {
+    margin-top: 30;
     background-color: #5c687c;
     color: white;
     text-align: center;
@@ -8,7 +15,41 @@ Label {
     margin-bottom: 20;
 }
 
+ListView {
+    margin-bottom: 20;
+}
+
 Button {
+    margin-top: 30;
     background-color: #66BB6A;
     border-radius: 10;
+}
+
+Image {
+    height: 100;
+}
+
+.active {
+    margin: 0;
+    border-radius: 1;
+    background-color: #5c687c;
+}
+
+.inactive {
+    margin: 0;
+    border-radius: 1;
+    background-color: #4a505b;
+}
+
+.h1{
+    margin-bottom: 30;
+}
+
+.h2_label_padding Label {
+    padding: 10;
+}
+
+.share {
+    font-size: 50;
+    color: #66BB6A;
 }
