@@ -1,8 +1,10 @@
 import * as LocalNotifications from "nativescript-local-notifications";
 import * as frameModule from 'ui/frame';
+import * as dialogs from 'ui/dialogs';
+
 import { navigateTo } from '../app-navigation';
 
-export function alertNow(messageSender: string, messageSenderId: string) {
+export function alertNewMessage(messageSender: string, messageSenderId: string) {
 
     var randomNotificationId = getRandomInt(1, 5000);
 
@@ -12,9 +14,14 @@ export function alertNow(messageSender: string, messageSenderId: string) {
             eventName: 'newMessageReceived',
             object: this
         });
+    }
 
-        // should also notify to update data if on the main-page
-
+    // if the user is on the main page, update the main page with new message badges and the like    
+    if (frameModule.topmost().currentEntry.moduleName === 'views/main-page/main-page') {
+        frameModule.topmost().currentPage.notify({
+            eventName: 'refreshData',
+            object: this
+        });
     }
 
     LocalNotifications.schedule([{
@@ -22,21 +29,58 @@ export function alertNow(messageSender: string, messageSenderId: string) {
         title: 'Squeak',
         body: 'You have a new message from ' + messageSender
     }]).then(() => {
-        notificationListenerInit(messageSenderId);
+        LocalNotifications.addOnMessageReceivedCallback(() => navigateTo('chat-page', messageSenderId));
     }, error => {
-        console.log('error');
+        alert(error);
     });
 }
 
-function notificationListenerInit(messageSenderId: string) {
-    LocalNotifications.addOnMessageReceivedCallback(
-        function (notificationData) {
-            navigateTo('chat-page', messageSenderId);
-        }
-    )
-        .then(() => {
-            console.log("Listener added");
+export function alertFriendConfirmation(friendName) {
+    var randomNotificationId = getRandomInt(1, 5000);
+
+    // update main page content, if the user is on the main page    
+    if (frameModule.topmost().currentEntry.moduleName === 'views/main-page/main-page') {
+        frameModule.topmost().currentPage.notify({
+            eventName: 'refreshData',
+            object: this
         });
+    }
+
+    LocalNotifications.schedule([{
+        id: randomNotificationId,
+        title: 'Squeak',
+        body: friendName + ' is now your Friend!'
+    }]).then(() => {
+        LocalNotifications.addOnMessageReceivedCallback(() => navigateTo('main-page'));
+    }, error => {
+        alert(error);
+    });
+}
+
+export var alertFriendRequest = function (friendName): Promise<Boolean> {
+    return new Promise((resolve, reject) => {
+        var randomNotificationId = getRandomInt(1, 5000);
+
+        LocalNotifications.schedule([{
+            id: randomNotificationId,
+            title: 'Squeak',
+            body: friendName + ' wants to be your Friend!'
+        }]).then(() => {
+            LocalNotifications.addOnMessageReceivedCallback(() => {
+                navigateTo('main-page');
+                dialogs.confirm({
+                    title: "Do you want to allow " + friendName + " to send you messages?",
+                    okButtonText: "Yes please!",
+                    cancelButtonText: "Maybe Not..."
+                }).then(result => {
+                    // Boolean
+                    resolve(result);
+                });
+            });
+        }, error => {
+            alert(error);
+        });
+    });
 }
 
 function getRandomInt(min, max) {

@@ -15,18 +15,14 @@ Label {
     margin-bottom: 20;
 }
 
-ListView {
-    margin-bottom: 20;
-}
-
 Button {
     margin-top: 30;
     background-color: #66BB6A;
     border-radius: 10;
 }
 
-Image {
-    height: 100;
+TextView {
+    background-color: #5c687c;
 }
 
 .active {
@@ -52,4 +48,8 @@ Image {
 .share {
     font-size: 50;
     color: #66BB6A;
+}
+
+.add_friend {
+    width: 200;
 }

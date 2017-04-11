@@ -9,14 +9,18 @@ import { navigateTo } from '../../app-navigation';
 
 class PageModel extends Observable {
 
+    private pageRef;
     public myFriends: ObservableArray<Object>;
 
-    constructor() {
+    constructor(pageRef) {
         super();
 
+        this.pageRef = pageRef;
         this.myFriends = new ObservableArray([]);
 
         this.populateFriendsList();
+
+        pageRef.on('refreshData', () => this.populateFriendsList());
     }
 
     private populateFriendsList() {
@@ -46,5 +50,5 @@ class PageModel extends Observable {
 // init the Friends data from the appStore and bind the PageModel to the page;
 export function pageLoaded(args: EventData) {
     var page = <Page>args.object;
-    page.bindingContext = new PageModel();
+    page.bindingContext = new PageModel(page);
 }

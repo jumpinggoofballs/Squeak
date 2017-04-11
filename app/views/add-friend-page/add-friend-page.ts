@@ -29,7 +29,7 @@ class PageModel extends Observable {
     }
 
     addFriend() {
-        addFriend(this.friendNickname, this.friendCode)
+        addFriend(this.friendCode)
             .then(() => {
                 initNavigation();
             }, error => {

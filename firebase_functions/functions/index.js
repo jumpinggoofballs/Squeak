@@ -17,15 +17,33 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
         return;
     }
 
-    // else: get the target user firebase UID 
+    // else: get the notification details
     const targetUser = snapshot.val().targetUser;
-    const messageRef = snapshot.val().messageRef;
+    const messageToFetchRef = snapshot.val().messageToFetchRef;
+    const myDetails = snapshot.val().myDetails;
 
-    const payload = {
-        data: {
-            targetUser: targetUser,
-            messageToFetchRef: messageRef,
-            notificationId: notificationId
+    // construct the payload
+    var payload;
+
+    // if this is a message notification
+    if (messageToFetchRef) {
+        payload = {
+            data: {
+                targetUser: targetUser,
+                messageToFetchRef: messageToFetchRef,
+                notificationId: notificationId
+            }
+        }
+    }
+
+    // if this is a Friend sharing notification
+    if (myDetails) {
+        payload = {
+            data: {
+                targetUser: targetUser,
+                myDetails: myDetails,
+                notificationId: notificationId
+            }
         }
     }
 

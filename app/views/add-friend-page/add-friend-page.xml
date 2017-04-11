@@ -6,30 +6,22 @@
     </Page.actionBar>
 
     <ScrollView>
-        <GridLayout rows="auto, *" columns="*, *, *, *">
+        <GridLayout rows="auto, *" columns="*, *">
 
-            <Button row="0" col="0" colSpan="2" text="From Received Code" tap="{{ tab1 }}" class="{{ tab === 1 ? 'active' : 'inactive' }}"/>
-            <Button row="0" col="2" colSpan="2" text="Share My Code" tap="{{ tab2 }}" class="{{ tab === 2 ? 'active' : 'inactive' }}"/>
+            <Button row="0" col="0" text="From Received Code" tap="{{ tab1 }}" class="{{ tab === 1 ? 'active' : 'inactive' }}"/>
+            <Button row="0" col="1" text="Share My Code" tap="{{ tab2 }}" class="{{ tab === 2 ? 'active' : 'inactive' }}"/>
 
-            <StackLayout row="1" col="1" colSpan="2" visibility="{{ tab === 1 ? 'visible' : 'collapsed' }}">
+            <StackLayout row="1" colSpan="2" visibility="{{ tab === 1 ? 'visible' : 'collapsed' }}">
                 <Label text="&#xA;&#xA;Add Friend" textWrap="true" class="h1"/>
 
-                <GridLayout rows="auto, auto, auto" columns="*, *" class="h2 h2_label_padding">
-                    <Label row="0" col="0" text="Name: " textWrap="true" />
-                    <TextView row="0" col="1" hint="<nickname>" text="{{ friendNickname }}" editable="true" />
+                <Label text="Code: " textWrap="true" class="h2"/>
+                <TextView hint="<paste code>" text="{{ friendCode }}" editable="true" class="h2"/>
 
-                    <Label row="1" col="0" text="Code: " textWrap="true"/>
-                    <TextView row="1" col="1" hint="<code>" text="{{ friendCode }}" editable="true" />
-
-                    <Image row="2" colSpan="2" src="~/images/avatar.png" stretch="aspectFit" class="avatar" />
-                </GridLayout>
-
-
-                <Button text="Add Friend" tap="{{ addFriend }}" visibility="{{ spinnerVisible ? 'collapsed' : 'visible' }}" />
+                <Button text="Add Friend" tap="{{ addFriend }}" class="add_friend" visibility="{{ spinnerVisible ? 'collapsed' : 'visible' }}" />
 
             </StackLayout>
 
-            <StackLayout row="1" col="1" colSpan="2" visibility="{{ tab === 2 ? 'visible' : 'collapsed' }}">
+            <StackLayout row="1" colSpan="2" visibility="{{ tab === 2 ? 'visible' : 'collapsed' }}">
                 <Label text="&#xA;&#xA;Share code:" textWrap="true" class="h1" />
                 <Label text="{{ myCode }}" textWrap="true" class="h2" />
                 <Label text="&#xf14d;" textWrap="true" class="share fa-icon" tap="{{ shareCode }}"/>

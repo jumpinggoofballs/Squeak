@@ -49,11 +49,17 @@ export class AppData {
         return new Promise((resolve, reject) => {
             firebase.init({
 
-                onMessageReceivedCallback: function (message: any) {
-                    retrieveMessage(message.targetUser, message.messageToFetchRef)
-                        .then(sender => {
-                            notificationService.alertNow(sender.nickname, sender.id);
-                        });
+                onMessageReceivedCallback: function (notification: any) {
+                    if (notification.messageToFetchRef) {
+                        retrieveMessage(notification.targetUser, notification.messageToFetchRef)
+                            .then(sender => {
+                                notificationService.alertNewMessage(sender.nickname, sender.id);
+                            });
+                    }
+
+                    if (notification.myDetails) {
+                        handleAddFriendNotification(notification.notificationId, notification.myDetails);
+                    }
                 },
 
                 onPushTokenReceivedCallback: function (token) {
@@ -186,13 +192,41 @@ export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }>
     });
 }
 
-export var addFriend = function (nickname: string, firebaseId: string): Promise<{ logMessage: string }> {
+export var addFriend = function (firebaseId: string): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
-        var newFriend = new Friend(nickname);
-        database.createDocument(newFriend, firebaseId);
+        var myProfile = database.getDocument('squeak-app').settings;
+        var path = '/users/' + myProfile.firebaseUID + '/x';
 
-        resolve('Added New Friend');
+        // add this user code / firebase Id to the list of people who can message me
+        firebase.push(
+            path,
+            firebaseId
+        ).then(() => {
+
+            // notify friend with our own details
+            var encryptedMyDetails = JSON.stringify({
+                // to be encrypted
+                nickname: myProfile.nickname,
+                firebaseId: myProfile.firebaseUID
+                // avatar:
+            });
+            firebase.push(
+                'notifications',
+                {
+                    targetUser: firebaseId,
+                    myDetails: encryptedMyDetails
+                }
+            ).then(() => {
+
+                //   Set preliminary details details for friend
+                var newFriend = new Friend(firebaseId);
+                newFriend.lastMessagePreview = 'Waiting for friend confirmation...';
+                database.createDocument(newFriend, firebaseId);
+
+                resolve('Added New Friend');
+            });
+        });
     });
 }
 
@@ -212,6 +246,37 @@ export var updateFriend = function (targetId: string, newProperties: Object): Pr
 
         resolve('Edited Friend');
     });
+}
+
+function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
+
+    var friend = JSON.parse(encryptedFriendDetails);
+
+    var localFriendRef = database.getDocument(friend.firebaseId);
+
+    // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
+    if (localFriendRef) {
+        localFriendRef.nickname = friend.nickname;
+        database.updateDocument(friend.firebaseId, localFriendRef);
+
+        notificationService.alertFriendConfirmation(friend.nickname);
+    } else {
+
+        // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
+        notificationService.alertFriendRequest(friend.nickname)
+            .then(confirmation => {
+
+                // if we receive a true value (== accept) from the Promise
+                if (confirmation) {
+
+                    // create Friend record
+                    var newFriend = new Friend(friend.nickname);
+                    database.createDocument(newFriend, friend.firebaseId);
+                    notificationService.alertFriendConfirmation(friend.nickname);
+                }
+            });
+    }
+
 }
 
 
@@ -243,7 +308,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
                 firebase.push(
                     'notifications',
                     {
-                        messageRef: sentMessageRef,
+                        messageToFetchRef: sentMessageRef,
                         targetUser: newFriendDocument._id
                     }
                 )
