@@ -211,6 +211,7 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
                 firebaseId: myProfile.firebaseUID
                 // avatar:
             });
+
             firebase.push(
                 'notifications',
                 {
@@ -219,15 +220,58 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
                 }
             ).then(() => {
 
-                //   Set preliminary details details for friend
-                var newFriend = new Friend(firebaseId);
-                newFriend.lastMessagePreview = 'Waiting for friend confirmation...';
-                database.createDocument(newFriend, firebaseId);
+                var friendRef = database.getDocument(firebaseId);
 
+                // if friendRef does not exist, initialise temporary values
+                if (!friendRef) {
+
+                    //   Set preliminary details details for friend
+                    var newFriend = new Friend('Pending');
+                    newFriend.lastMessagePreview = 'Waiting for friend confirmation... (code: ' + firebaseId + ')';
+                    database.createDocument(newFriend, firebaseId);
+                }
                 resolve('Added New Friend');
             });
         });
     });
+}
+
+function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
+
+    var friend = JSON.parse(encryptedFriendDetails);
+
+    let localFriendRef = database.getDocument(friend.firebaseId);
+
+    // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
+    if (localFriendRef) {
+        localFriendRef.nickname = friend.nickname;
+        localFriendRef.lastMessagePreview = 'New Friend';
+        database.updateDocument(friend.firebaseId, localFriendRef);
+
+        notificationService.alertFriendConfirmation(friend.nickname);
+    } else {
+
+        // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
+        notificationService.alertFriendRequest(friend.nickname)
+            .then(confirmation => {
+                // if we receive a true value (== accept) from the Promise
+                if (confirmation) {
+
+                    // add Friend record with initial values
+                    addFriend(friend.firebaseId).then(() => {
+
+                        // then update with the actual values
+                        let localFriendRef = database.getDocument(friend.firebaseId);
+                        localFriendRef.nickname = friend.nickname;
+                        localFriendRef.lastMessagePreview = 'New Friend';
+                        database.updateDocument(friend.firebaseId, localFriendRef);
+
+                        notificationService.alertFriendConfirmation(friend.nickname);
+                    });
+                }
+            });
+    }
+
 }
 
 export var removeFriend = function (targetId: string): Promise<{ logMessage: string }> {
@@ -246,37 +290,6 @@ export var updateFriend = function (targetId: string, newProperties: Object): Pr
 
         resolve('Edited Friend');
     });
-}
-
-function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
-
-    var friend = JSON.parse(encryptedFriendDetails);
-
-    var localFriendRef = database.getDocument(friend.firebaseId);
-
-    // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
-    if (localFriendRef) {
-        localFriendRef.nickname = friend.nickname;
-        database.updateDocument(friend.firebaseId, localFriendRef);
-
-        notificationService.alertFriendConfirmation(friend.nickname);
-    } else {
-
-        // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
-        notificationService.alertFriendRequest(friend.nickname)
-            .then(confirmation => {
-
-                // if we receive a true value (== accept) from the Promise
-                if (confirmation) {
-
-                    // create Friend record
-                    var newFriend = new Friend(friend.nickname);
-                    database.createDocument(newFriend, friend.firebaseId);
-                    notificationService.alertFriendConfirmation(friend.nickname);
-                }
-            });
-    }
-
 }
 
 

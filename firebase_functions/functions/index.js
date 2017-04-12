@@ -22,6 +22,11 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
     const messageToFetchRef = snapshot.val().messageToFetchRef;
     const myDetails = snapshot.val().myDetails;
 
+    // options for sending
+    const options = {
+        priority: "high"
+    };
+
     // construct the payload
     var payload;
 
@@ -53,7 +58,7 @@ exports.pushNotify = functions.database.ref('/notifications/{notificationId}').o
 
         // send the pre-defined payload to the device identified by the FCM token
         const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload).then(() => {
+        return admin.messaging().sendToDevice(token, payload, options).then(() => {
 
             // remove the notification record
             admin.database().ref('/notifications').child(notificationId).remove();

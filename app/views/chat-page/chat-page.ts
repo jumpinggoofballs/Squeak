@@ -1,10 +1,11 @@
 import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
 import { ListView } from 'ui/list-view';
-import { navigateBack } from '../../app-navigation';
 import * as timer from 'timer';
 
 import * as appStore from '../../data/app-store';
+import { navigateBack } from '../../app-navigation';
+// import { cancelNotification } from '../../data/notification';
 
 class PageModel extends Observable {
 
@@ -19,9 +20,10 @@ class PageModel extends Observable {
         this.getPageData();
         this.scrollMessagesList();
 
-        pageRef.on('newMessageReceived', () => {
+        pageRef.on('newMessageReceived', args => {
             this.getPageData();
             this.reScrollWithDelay();
+            // cancelNotification(args.object);         // also cancels when the app is minimised
         });
     }
 
@@ -29,6 +31,10 @@ class PageModel extends Observable {
         var friendRef = this.pageRef.navigationContext.chatRef;
         var thisChatFriend = appStore.getFriend(friendRef);
         this.set('thisFriend', thisChatFriend);
+
+        // then mark all messages as read (locally)
+        thisChatFriend.unreadMessagesNumber = 0;
+        appStore.updateFriend(friendRef, thisChatFriend);
     }
 
     public reScrollWithDelay() {

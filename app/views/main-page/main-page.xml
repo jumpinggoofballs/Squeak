@@ -8,7 +8,14 @@
     <grid-layout rows="auto, *">
         <ListView row="1" items="{{ myFriends }}" itemTap="{{ goToChat }}">
             <ListView.itemTemplate>
-                <Label text="{{ nickname }}" textWrap="true" class="friendListRow" />
+                <GridLayout rows="auto, auto" columns="auto, *, auto" itemRef="{{ _id }}" tap="goToChat">
+                    <Image row="0" rowSpan="2" col="0" src="~/images/avatar.png" stretch="fill" class="avatar" />
+
+                    <Label row="0" col="1" text="{{ nickname }}" textWrap="true" class="friendListName" />
+                    <Label row="1" col="1" text="{{ lastMessagePreview }}" textWrap="false" class="friendListDetail" />
+
+                    <Button row="0" rowSpan="2" col="2" text="{{ unreadMessagesNumber }}" class="badge" visibility="{{ unreadMessagesNumber ? 'visible' : 'collapsed' }}" />
+                </GridLayout>
             </ListView.itemTemplate>
         </ListView>
         <FAB:fab tap="{{ addFriend }}" row="1" rippleColor="#f1f1f1" class="fab-button" ios.systemIcon="4" icon="emo_im_laughing" />

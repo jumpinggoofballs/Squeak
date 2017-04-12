@@ -6,6 +6,7 @@ import { ListView } from 'ui/list-view';
 import { Friend } from '../../data/app-data-model';
 import * as appStore from '../../data/app-store';
 import { navigateTo } from '../../app-navigation';
+// import { cancelNotification } from '../../data/notification';
 
 class PageModel extends Observable {
 
@@ -20,7 +21,10 @@ class PageModel extends Observable {
 
         this.populateFriendsList();
 
-        pageRef.on('refreshData', () => this.populateFriendsList());
+        pageRef.on('refreshData', args => {
+            this.populateFriendsList();
+            // cancelNotification(args.object);         // also cancels when the app is minimised
+        });
     }
 
     private populateFriendsList() {
@@ -41,9 +45,10 @@ class PageModel extends Observable {
         navigateTo('settings-page');
     }
 
-    public goToChat(args) {
-        navigateTo('chat-page', this.myFriends[args.index]._id);
-    }
+    // ListView:itemTap and GridView are not playing nicely with each other so this has been taken out of here and implemented as a GridView:tap 
+    // public goToChat(args) {
+    //     navigateTo('chat-page', this.myFriends[args.index]._id);
+    // }
 };
 
 
@@ -51,4 +56,8 @@ class PageModel extends Observable {
 export function pageLoaded(args: EventData) {
     var page = <Page>args.object;
     page.bindingContext = new PageModel(page);
+}
+
+export function goToChat(args) {
+    navigateTo('chat-page', args.object.itemRef);
 }

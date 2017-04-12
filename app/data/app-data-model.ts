@@ -24,7 +24,6 @@ export class Friend {
         this.nickname = nickname;
         this.unreadMessagesNumber = 0;
         this.timeLastMessage = new Date();
-        this.lastMessagePreview = 'New Friend';
         this.messages = [];
         this.documentType = 'Friend';
     }

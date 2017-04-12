@@ -8,26 +8,11 @@
     color: white;
 }
 
-.friendListRow {
-    font: 20;
-    color: black;
-    padding: 18;
-}
-
-
 .fa-icon {
     font-family: 'FontAwesome';
     font-size: 24;
     font-weight: normal;
     text-align: center;
-}
-
- .fab-button {
-    height: 60;
-    margin: 35;
-    background-color: #5c687c; 
-    horizontal-align: right; 
-    vertical-align: bottom; 
 }
 
 .avatar {
