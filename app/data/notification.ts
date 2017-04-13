@@ -6,14 +6,13 @@ import { initNavigation } from '../app-navigation';
 
 export function alertNewMessages(messagesArray: Array<Object>) {
 
-    alert(frameModule.topmost().currentEntry.moduleName);
     // if the user is on the main page, update the main page with new message badges and the like
-    // both references are needed for different versions of android
-    if (frameModule.topmost().currentEntry.moduleName === './views/main-page/main-page' || 'views/main-page/main-page') {
+    // both references are needed for different versions of android;
+    if (frameModule.topmost().currentEntry.moduleName === ('./views/main-page/main-page' || 'views/main-page/main-page')) {
         frameModule.topmost().currentPage.notify({
             eventName: 'refreshData',
             object: this
-        });
+        })
     } else {
 
         var currentFriendId = frameModule.topmost().currentEntry.context.chatRef;
@@ -52,6 +51,15 @@ export function alertNewMessages(messagesArray: Array<Object>) {
                 alert(error);
             });
         }
+    }
+}
+
+export function refreshMessageStatus(chatId) {
+    if (frameModule.topmost().currentEntry.context.chatRef === chatId) {
+        frameModule.topmost().currentPage.notify({
+            eventName: 'newMessageReceived',
+            object: this
+        });
     }
 }
 

@@ -57,6 +57,10 @@ export class AppData {
                     if (notification.myDetails) {
                         handleAddFriendNotification(notification.notificationId, notification.myDetails);
                     }
+
+                    if (notification.m) {
+                        handleMessageReceiptNotification(notification.m).then(chatId => notificationService.refreshMessageStatus(chatId));
+                    }
                 },
 
                 onPushTokenReceivedCallback: function (token) {
@@ -319,8 +323,9 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
             encryptedMessage
         )
             //then update the local state    
-            .then(() => {
+            .then(confirmation => {
                 newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
+                newFriendDocument.messages[newMessageIndex - 1].id = confirmation.key;
                 database.updateDocument(chatId, newFriendDocument);
                 resolve('Message Sent');
 
@@ -353,10 +358,12 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
                     // create new Message() for local consumption
                     var newMessage = new Message('', false);
+                    newMessage.id = key;
                     newMessage.messageAuthor = decryptedMessage.messageAuthor;
                     newMessage.messageText = decryptedMessage.messageText;
                     newMessage.messageTimeSent = new Date(decryptedMessage.messageTimeSent);
                     newMessage.messageTimeReceived = new Date();
+                    newMessage.messageStatus = 'Received';
 
                     // save this message to return to the notification handler
                     messagesArray.push(newMessage);
@@ -370,6 +377,9 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
                     // update the database
                     database.updateDocument(decryptedMessage.messageAuthor, targetFriend);
+
+                    // notify sender of receipt
+                    confirmMessageReceipt(myId, decryptedMessage.messageAuthor, newMessage.id, newMessage.messageTimeReceived);
                 });
 
                 firebase.removeEventListeners(eventListeners, myMessagesPath);
@@ -382,6 +392,32 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
             // get eventListeners ref
             eventListeners = listenerWrapper.listeners;
+        });
+    });
+}
+
+function confirmMessageReceipt(myId, author, messageId, timeReceived) {
+    var notificationPath = 'confirmations/' + author;
+    var encryptedPayload = JSON.stringify({
+        id: messageId,
+        sender: myId,
+        timeReceived: timeReceived
+    });
+    firebase.push(notificationPath, encryptedPayload);
+}
+
+function handleMessageReceiptNotification(encryptedNotification): Promise<{ chatId: string }> {
+    return new Promise((resolve, reject) => {
+        var notification = JSON.parse(encryptedNotification);
+        var friend = database.getDocument(notification.sender);
+
+        friend.messages.forEach(message => {
+            if (notification.id === message.id) {
+                message.messageStatus = 'Received';
+                message.messageTimeReceived = notification.timeReceived;
+                database.updateDocument(notification.sender, friend);
+                resolve(notification.sender);
+            }
         });
     });
 }

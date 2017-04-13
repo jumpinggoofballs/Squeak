@@ -1,4 +1,5 @@
 export class Message {
+    id: string;
     messageAuthor: string;
     messageText: string;
     messageTimeSent: Date;

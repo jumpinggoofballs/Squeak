@@ -12,7 +12,7 @@
     <GridLayout rows="*, auto">
 
         <FlexboxLayout flexDirection="column-reverse">
-            <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemLoading="onItemLoading" itemTap="onItemTap" separatorColor="transparent">
+            <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemTap="" separatorColor="transparent">
                 <ListView.itemTemplate>
                     <StackLayout order="">
 
@@ -37,7 +37,10 @@
                                 <Label col="2" class="triangle-right" text="col 3" />
                             </GridLayout>
 
-                            <Label class="msg_timestamp" text="{{ messageTimeSent | fromNow }}" />
+                            <GridLayout columns="*, auto, auto" class="msg_timestamp fa-icon">
+                                <Label col="1" text="{{ messageTimeSent | fromNow }}" />
+                                <Label col="2" horizontalAlignment="right" text="{{ messageStatus === 'Sent' ? '  &#xf141;' : '  &#xf00c;'}}" class=""/>
+                            </GridLayout>
                         </StackLayout>
 
                     </StackLayout>

@@ -1,6 +1,7 @@
 import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
 import { ListView } from 'ui/list-view';
+import * as dialogs from 'ui/dialogs'
 import * as timer from 'timer';
 
 import * as appStore from '../../data/app-store';
@@ -10,11 +11,13 @@ class PageModel extends Observable {
 
     private thisFriend: any;
     private pageRef: any;
+    private listViewRef: any;
     public newMessageText: string;
 
     constructor(pageRef: any) {
         super();
         this.pageRef = pageRef;
+        this.listViewRef = <ListView>this.pageRef.getViewById('messagesList');
         this.newMessageText = '';
         this.getPageData();
         this.scrollMessagesList();
@@ -46,11 +49,10 @@ class PageModel extends Observable {
     }
 
     public scrollMessagesList(animate?: string) {
-        var listViewRef = <ListView>this.pageRef.getViewById('messagesList');
-        if (listViewRef.android && (animate === 'animate')) {
-            listViewRef.android.smoothScrollToPosition(this.thisFriend.messages.length - 1);
+        if (this.listViewRef.android && (animate === 'animate')) {
+            this.listViewRef.android.smoothScrollToPosition(this.thisFriend.messages.length - 1);
         } else {
-            listViewRef.scrollToIndex(this.thisFriend.messages.length - 1);
+            this.listViewRef.scrollToIndex(this.thisFriend.messages.length - 1);
         }
     }
 
@@ -69,6 +71,33 @@ class PageModel extends Observable {
     public removeFriend() {
         navigateBack();
         appStore.removeFriend(this.thisFriend._id);
+    }
+
+    // not implemented    
+    public onMessageTap(args) {
+        var thisMessage = this.thisFriend.messages[args.index];
+
+        var author = thisMessage.sourceIsMe ? 'Me' : this.thisFriend.nickname;
+        var timeSent = new Date(thisMessage.messageTimeSent).toUTCString();
+        var status = thisMessage.status;
+
+        var timeReceived;
+        if (thisMessage.messageTimeReceived) {
+            timeReceived = new Date(thisMessage.messageTimeReceived).toUTCString();
+        } else {
+            timeReceived = 'n/a';
+        }
+
+        var thisMessageString =
+            ('Author: ' + author +
+                '\n\nTime Sent: ' + timeSent +
+                '\n\nTime Received: ' + timeReceived +
+                '\n\nStatus: ' + thisMessage.messageStatus);
+        dialogs.alert({
+            title: "Message Details",
+            message: thisMessageString,
+            okButtonText: "Done"
+        });
     }
 }
 
