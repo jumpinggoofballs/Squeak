@@ -51,10 +51,7 @@ export class AppData {
 
                 onMessageReceivedCallback: function (notification: any) {
                     if (notification.messageToFetch) {
-                        retrieveMessage(notification.targetUser, notification.messageToFetch)
-                            .then(sender => {
-                                notificationService.alertNewMessage(sender.nickname, sender.id);
-                            });
+                        retrieveAllMessages().then(messagesArray => notificationService.alertNewMessages(messagesArray));
                     }
 
                     if (notification.myDetails) {
@@ -302,7 +299,8 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
         var newFriendDocument = database.getDocument(chatId);
         var newMessage = new Message(messageText, true);
 
-        // store the message in memory        
+        // store the message in memory  
+        newMessage.messageAuthor = database.getDocument('squeak-app').settings.firebaseUID;
         newMessage.messageTimeSent = new Date();
         newMessage.messageStatus = 'Sending...';
         var newMessageIndex = newFriendDocument.messages.push(newMessage);
@@ -310,7 +308,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
 
         // prepare message for sending
         var encryptedMessage = JSON.stringify({
-            messageAuthor: database.getDocument('squeak-app').settings.firebaseUID,
+            messageAuthor: newMessage.messageAuthor,
             messageText: newMessage.messageText,
             messageTimeSent: newMessage.messageTimeSent
         });
@@ -335,48 +333,56 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
     });
 }
 
-var retrieveMessage = function (targetUser: string, messageRef: string): Promise<{ id: string, nickname: string }> {
+function retrieveAllMessages(): Promise<Array<Object>> {
     return new Promise((resolve, reject) => {
-        var myMessagePath = 'users/' + targetUser + '/z/' + messageRef;
+
+        var myId = appDocumentRef.settings.firebaseUID;
+        var eventListeners;
+        var myMessagesPath = 'users/' + myId + '/z';
+
         firebase.addValueEventListener(snapshot => {
 
             // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.
             if (snapshot.value) {
 
-                var decryptedMessage = JSON.parse(snapshot.value);
+                var messagesArray = [];
+                var keysArray = Object.keys(snapshot.value);
+                keysArray.forEach(key => {
 
-                // create new Message() for local consumption
-                var newMessage = new Message('', false);
-                newMessage.messageText = decryptedMessage.messageText;
-                newMessage.messageTimeSent = new Date(decryptedMessage.messageTimeSent);
-                newMessage.messageTimeReceived = new Date();
+                    var decryptedMessage = JSON.parse(snapshot.value[key]);
 
-                // update Friend Record                
-                var targetFriend = getFriend(decryptedMessage.messageAuthor);
-                targetFriend.messages.push(newMessage);
-                targetFriend.timeLastMessage = newMessage.messageTimeReceived;
-                targetFriend.lastMessagePreview = decryptedMessage.messageText;
-                targetFriend.unreadMessagesNumber += 1;
+                    // create new Message() for local consumption
+                    var newMessage = new Message('', false);
+                    newMessage.messageAuthor = decryptedMessage.messageAuthor;
+                    newMessage.messageText = decryptedMessage.messageText;
+                    newMessage.messageTimeSent = new Date(decryptedMessage.messageTimeSent);
+                    newMessage.messageTimeReceived = new Date();
 
-                database.updateDocument(decryptedMessage.messageAuthor, targetFriend);
-                firebase.setValue(myMessagePath, null).then(() => {
-                    // resolve({
-                    //     id: decryptedMessage.messageAuthor,
-                    //     nickname: targetFriend.nickname
-                    // });
+                    // save this message to return to the notification handler
+                    messagesArray.push(newMessage);
+
+                    // create updated Friend Record
+                    var targetFriend = getFriend(decryptedMessage.messageAuthor);
+                    targetFriend.messages.push(newMessage);
+                    targetFriend.timeLastMessage = newMessage.messageTimeReceived;
+                    targetFriend.lastMessagePreview = decryptedMessage.messageText;
+                    targetFriend.unreadMessagesNumber += 1;
+
+                    // update the database
+                    database.updateDocument(decryptedMessage.messageAuthor, targetFriend);
                 });
-                resolve({
-                    id: decryptedMessage.messageAuthor,
-                    nickname: targetFriend.nickname
-                });
-            }
 
-            reject('Message no found on Firebase');
-        }, myMessagePath)
-            .catch(error => {
-                alert(error);
-                reject();
-            });
+                firebase.removeEventListeners(eventListeners, myMessagesPath);
+                firebase.setValue(myMessagesPath, null);
+                resolve(messagesArray);
+
+            } else reject('Could not find any message on Firebase');
+
+        }, myMessagesPath).then(listenerWrapper => {
+
+            // get eventListeners ref
+            eventListeners = listenerWrapper.listeners;
+        });
     });
 }
 

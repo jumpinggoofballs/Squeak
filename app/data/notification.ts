@@ -4,48 +4,62 @@ import * as dialogs from 'ui/dialogs';
 
 import { initNavigation } from '../app-navigation';
 
-export function alertNewMessage(messageSender: string, messageSenderId: string) {
+export function alertNewMessages(messagesArray: Array<Object>) {
 
-    // var randomNotificationId = getRandomInt(1, 5000);
-    // var notificationEventObject = {
-    //     notificationId: randomNotificationId
-    // };
-
-    // if the user is on the main page, update the main page with new message badges and the like    
-    if (frameModule.topmost().currentEntry.moduleName === './views/main-page/main-page') {
+    alert(frameModule.topmost().currentEntry.moduleName);
+    // if the user is on the main page, update the main page with new message badges and the like
+    // both references are needed for different versions of android
+    if (frameModule.topmost().currentEntry.moduleName === './views/main-page/main-page' || 'views/main-page/main-page') {
         frameModule.topmost().currentPage.notify({
             eventName: 'refreshData',
-            // object: notificationEventObject.notificationId
             object: this
         });
-    } else
-        // if the notifications is from the user currently represented in the chat view, just update the chat view via the newMessageReceived event on that page
-        if (frameModule.topmost().currentEntry.context.chatRef === messageSenderId) {
-            frameModule.topmost().currentPage.notify({
-                eventName: 'newMessageReceived',
-                // object: notificationEventObject.notificationId
-                object: this
-            });
-        } else {
-            // if the user is in the app but on a different page, make loud notification
+    } else {
+
+        var currentFriendId = frameModule.topmost().currentEntry.context.chatRef;
+        var otherMessages = 0;
+        messagesArray.forEach((message: any) => {
+
+            // if we have a currentFriendId (== we are on a chat-page) and we are on the chat page corresponding to this message
+            if (currentFriendId === message.messageAuthor) {
+
+                // update the view with animation, etc.
+                frameModule.topmost().currentPage.notify({
+                    eventName: 'newMessageReceived',
+                    object: this
+                });
+            } else {
+                otherMessages += 1;
+            }
+        });
+
+        // if we do messages corresponding to other pages, trigger loud notification        
+        if (otherMessages) {
+
+            var body = '';
+            if (otherMessages === 1) {
+                body = 'You have a new message';
+            } else {
+                body = 'You have ' + otherMessages + ' other messages';
+            };
+
             LocalNotifications.schedule([{
-                // id: randomNotificationId,
                 title: 'Squeak',
-                body: 'You have a new message from ' + messageSender
+                body: body
             }]).then(() => {
                 LocalNotifications.addOnMessageReceivedCallback(() => initNavigation());
-                // LocalNotifications.addOnMessageReceivedCallback(() => navigateTo('chat-page', messageSenderId));
             }, error => {
                 alert(error);
             });
         }
+    }
 }
 
 export function alertFriendConfirmation(friendName) {
     var randomNotificationId = getRandomInt(1, 5000);
 
     // update main page content, if the user is on the main page    
-    if (frameModule.topmost().currentEntry.moduleName === 'views/main-page/main-page') {
+    if (frameModule.topmost().currentEntry.moduleName === './views/main-page/main-page' || 'views/main-page/main-page') {
         frameModule.topmost().currentPage.notify({
             eventName: 'refreshData',
             object: this
@@ -87,10 +101,6 @@ export var alertFriendRequest = function (friendName): Promise<Boolean> {
             alert(error);
         });
     });
-}
-
-export function cancelNotification(notificationId) {
-    LocalNotifications.cancel(notificationId);
 }
 
 function getRandomInt(min, max) {
