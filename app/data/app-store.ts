@@ -50,8 +50,8 @@ export class AppData {
             firebase.init({
 
                 onMessageReceivedCallback: function (notification: any) {
-                    if (notification.messageToFetchRef) {
-                        retrieveMessage(notification.targetUser, notification.messageToFetchRef)
+                    if (notification.messageToFetch) {
+                        retrieveMessage(notification.targetUser, notification.messageToFetch)
                             .then(sender => {
                                 notificationService.alertNewMessage(sender.nickname, sender.id);
                             });
@@ -244,11 +244,13 @@ function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
 
     // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
     if (localFriendRef) {
+
         localFriendRef.nickname = friend.nickname;
         localFriendRef.lastMessagePreview = 'New Friend';
         database.updateDocument(friend.firebaseId, localFriendRef);
 
         notificationService.alertFriendConfirmation(friend.nickname);
+
     } else {
 
         // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
@@ -306,38 +308,23 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
         var newMessageIndex = newFriendDocument.messages.push(newMessage);
         database.updateDocument(chatId, newFriendDocument);
 
+        // prepare message for sending
+        var encryptedMessage = JSON.stringify({
+            messageAuthor: database.getDocument('squeak-app').settings.firebaseUID,
+            messageText: newMessage.messageText,
+            messageTimeSent: newMessage.messageTimeSent
+        });
+
         // push message to firebase
         firebase.push(
             '/users/' + newFriendDocument._id + '/z',
-            {
-                messageAuthor: database.getDocument('squeak-app').settings.firebaseUID,
-                messageText: newMessage.messageText,
-                messageTimeSent: firebase.ServerValue.TIMESTAMP
-            }
+            encryptedMessage
         )
-            // then push notification of the message sent    
-            .then(pushResponse => {
-                const sentMessageRef = pushResponse.key;
-                firebase.push(
-                    'notifications',
-                    {
-                        messageToFetchRef: sentMessageRef,
-                        targetUser: newFriendDocument._id
-                    }
-                )
-
-                    //then update the local state    
-                    .then(() => {
-                        newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
-                        database.updateDocument(chatId, newFriendDocument);
-                        resolve('Message Sent');
-
-                    }, error => {
-                        newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
-                        database.updateDocument(chatId, newFriendDocument);
-                        alert(error);
-                        reject();
-                    });
+            //then update the local state    
+            .then(() => {
+                newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
+                database.updateDocument(chatId, newFriendDocument);
+                resolve('Message Sent');
 
             }, error => {
                 newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
@@ -352,30 +339,39 @@ var retrieveMessage = function (targetUser: string, messageRef: string): Promise
     return new Promise((resolve, reject) => {
         var myMessagePath = 'users/' + targetUser + '/z/' + messageRef;
         firebase.addValueEventListener(snapshot => {
-            // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.      
+
+            // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.
             if (snapshot.value) {
-                var received = snapshot.value;
+
+                var decryptedMessage = JSON.parse(snapshot.value);
 
                 // create new Message() for local consumption
                 var newMessage = new Message('', false);
-                newMessage.messageText = received.messageText;
-                newMessage.messageTimeSent = new Date(received.messageTimeSent);
+                newMessage.messageText = decryptedMessage.messageText;
+                newMessage.messageTimeSent = new Date(decryptedMessage.messageTimeSent);
                 newMessage.messageTimeReceived = new Date();
 
-                var targetFriend = getFriend(received.messageAuthor);
+                // update Friend Record                
+                var targetFriend = getFriend(decryptedMessage.messageAuthor);
                 targetFriend.messages.push(newMessage);
                 targetFriend.timeLastMessage = newMessage.messageTimeReceived;
-                targetFriend.lastMessagePreview = received.messageText;             // this could be trimmed or something
+                targetFriend.lastMessagePreview = decryptedMessage.messageText;
                 targetFriend.unreadMessagesNumber += 1;
 
-                database.updateDocument(received.messageAuthor, targetFriend);
+                database.updateDocument(decryptedMessage.messageAuthor, targetFriend);
                 firebase.setValue(myMessagePath, null).then(() => {
-                    resolve({
-                        id: received.messageAuthor,
-                        nickname: targetFriend.nickname
-                    });
+                    // resolve({
+                    //     id: decryptedMessage.messageAuthor,
+                    //     nickname: targetFriend.nickname
+                    // });
+                });
+                resolve({
+                    id: decryptedMessage.messageAuthor,
+                    nickname: targetFriend.nickname
                 });
             }
+
+            reject('Message no found on Firebase');
         }, myMessagePath)
             .catch(error => {
                 alert(error);

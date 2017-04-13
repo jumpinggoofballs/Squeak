@@ -12,8 +12,11 @@ export function navigateTo(pageName: string, params?: string) {
 }
 
 export function navigateBack() {
-    const topFrameModule = frameModule.topmost();
-    topFrameModule.goBack();
+    // const topFrameModule = frameModule.topmost();
+    // topFrameModule.goBack();
+
+    // for the time being, this is all that is necessary and works better
+    initNavigation();
 }
 
 export function initNavigation() {

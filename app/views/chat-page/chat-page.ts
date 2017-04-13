@@ -5,7 +5,6 @@ import * as timer from 'timer';
 
 import * as appStore from '../../data/app-store';
 import { navigateBack } from '../../app-navigation';
-// import { cancelNotification } from '../../data/notification';
 
 class PageModel extends Observable {
 
@@ -20,10 +19,9 @@ class PageModel extends Observable {
         this.getPageData();
         this.scrollMessagesList();
 
-        pageRef.on('newMessageReceived', args => {
+        pageRef.on('newMessageReceived', () => {
             this.getPageData();
             this.reScrollWithDelay();
-            // cancelNotification(args.object);         // also cancels when the app is minimised
         });
     }
 
