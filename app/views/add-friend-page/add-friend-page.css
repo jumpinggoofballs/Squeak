@@ -11,6 +11,10 @@ GridLayout {
     text-align: center;
 }
 
+StackLayout {
+    padding: 0 30;
+}
+
 Label {
     margin-bottom: 20;
 }

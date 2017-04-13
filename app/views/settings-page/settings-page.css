@@ -36,3 +36,15 @@ Button {
     font-size: 50;
     color: #66BB6A;
 }
+
+.avatar {
+    border-radius: 20;
+}
+
+.share_code {
+    padding: 0 20;
+}
+
+.code {
+    color: #e0e0e0;
+}

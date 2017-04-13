@@ -48,7 +48,7 @@
 
         <!-- Send new message bar-->
         <GridLayout row="1" columns="*, auto, auto" rows="*" class="message-bar">
-            <TextView col="0" id="newMessageInput" hint="&#x000a;" text="{{ newMessageText }}" textWrap="true" tap="{{ reScrollWithDelay }}" />
+            <TextView col="0" id="newMessageInput" hint="Send message" text="{{ newMessageText }}" textWrap="true" tap="{{ reScrollWithDelay }}" />
             <Label col="1" class="triangle-right"/>
             <Button col="2" text="&#xf1d8;" tap="{{ sendMessage }}" class="fa-icon"/>
         </GridLayout>
