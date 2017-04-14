@@ -5,7 +5,7 @@ import * as dialogs from 'ui/dialogs'
 import * as timer from 'timer';
 
 import * as appStore from '../../data/app-store';
-import { navigateBack } from '../../app-navigation';
+import { navigateBack, navigateTo } from '../../app-navigation';
 
 class PageModel extends Observable {
 
@@ -68,9 +68,37 @@ class PageModel extends Observable {
         }
     }
 
+    public clearMessages() {
+        dialogs.confirm({
+            title: 'Clear Message History?',
+            okButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then(result => {
+            // result argument is boolean
+            if (result) {
+                this.thisFriend.messages = [];
+                appStore.updateFriend(this.thisFriend._id, this.thisFriend);
+                this.getPageData();
+            }
+        });
+    }
+
     public removeFriend() {
-        navigateBack();
-        appStore.removeFriend(this.thisFriend._id);
+        dialogs.confirm({
+            title: 'Delete Friend',
+            message: 'Are you sure you want to delete all records of ' + this.thisFriend.nickname + ' and block them from sending you messages?',
+            okButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then(result => {
+            // result argument is boolean
+            if (result) {
+                appStore.removeFriend(this.thisFriend._id).then(() => navigateBack());
+            }
+        });
+    }
+
+    public editFriend() {
+        navigateTo('profile-page', this.thisFriend._id);
     }
 
     // not implemented    
@@ -94,9 +122,9 @@ class PageModel extends Observable {
                 '\n\nTime Received: ' + timeReceived +
                 '\n\nStatus: ' + thisMessage.messageStatus);
         dialogs.alert({
-            title: "Message Details",
+            title: 'Message Details',
             message: thisMessageString,
-            okButtonText: "Done"
+            okButtonText: 'Done'
         });
     }
 }

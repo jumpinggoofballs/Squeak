@@ -185,6 +185,13 @@ export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }>
 
         var friendsListQuery = database.executeQuery('friends');
         if (friendsListQuery) {
+
+            var sortedFriendsList = friendsListQuery.sort((a, b) => {
+                var dateA = new Date(a.timeLastMessage).valueOf();
+                var dateB = new Date(b.timeLastMessage).valueOf();
+                return dateB - dateA;                               // newest at the top
+            });
+
             resolve(friendsListQuery);
         }
         else {
@@ -280,9 +287,33 @@ function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
 export var removeFriend = function (targetId: string): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
 
-        database.deleteDocument(targetId);
+        // get the path to the permission entry to remove
+        var permissionPath = 'users/' + appDocumentRef.settings.firebaseUID + '/x/'
+        firebase.query(result => {
 
-        resolve('Removed Friend');
+            // only get excited if we actually find the permission record
+            if (result.value) {
+                var target = Object.keys(result.value)[0];  // == the key to the record to remove
+
+                // set the target path to null
+                firebase.setValue(permissionPath + target, null).then(() => {
+
+                    // then delete the local record and resolve
+                    database.deleteDocument(targetId);
+                    resolve('Removed Friend');
+                });
+            } else {
+                database.deleteDocument(targetId);
+                resolve('Friend did not have permissions to message you');      // == the firebase record was previously deleted (should not happen)
+            }
+        },
+            permissionPath,
+            {
+                singleEvent: true,
+                orderBy: {
+                    type: firebase.QueryOrderByType.VALUE,
+                }
+            });
     });
 }
 
@@ -370,10 +401,18 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
                     // create updated Friend Record
                     var targetFriend = getFriend(decryptedMessage.messageAuthor);
+
                     targetFriend.messages.push(newMessage);
                     targetFriend.timeLastMessage = newMessage.messageTimeReceived;
                     targetFriend.lastMessagePreview = decryptedMessage.messageText;
                     targetFriend.unreadMessagesNumber += 1;
+
+                    // Then sort the messages. for sorting arrays, see: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+                    targetFriend.messages = targetFriend.messages.sort((a, b) => {
+                        var dateA = new Date(a.messageTimeSent).valueOf();
+                        var dateB = new Date(b.messageTimeSent).valueOf();
+                        return dateA - dateB;
+                    });
 
                     // update the database
                     database.updateDocument(decryptedMessage.messageAuthor, targetFriend);

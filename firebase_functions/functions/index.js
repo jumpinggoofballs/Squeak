@@ -103,6 +103,11 @@ exports.receiptNotify = functions.database.ref('confirmations/{targetUID}/{notif
         return;
     }
 
+    // options for sending
+    const options = {
+        priority: "high"
+    };
+
     // construct the payload
     var payload = {
         data: {
@@ -116,7 +121,7 @@ exports.receiptNotify = functions.database.ref('confirmations/{targetUID}/{notif
 
         // send the pre-defined payload to the device identified by the FCM token
         const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload).then(() => {
+        return admin.messaging().sendToDevice(token, payload, options).then(() => {
 
             // remove the notification record
             admin.database().ref('/confirmations').child(targetUID).child(notificationRef).remove();

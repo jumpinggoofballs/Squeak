@@ -1,0 +1,28 @@
+<Page class="page" loaded="pageLoaded">
+    <Page.actionBar>
+        <ActionBar title="Settings" icon="" class="action-bar">
+            <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
+        </ActionBar>
+    </Page.actionBar>
+
+    <ScrollView>
+        <GridLayout rows="auto, auto, *" columns="*, *, *">
+            <Label row="0" colSpan="3" text="&#xA;Friend Details&#xA;" textWrap="true" class="h1"/>
+            <StackLayout row="1" col="1">
+                <Label text="Avatar   &#xf040;" textWrap="true" class="h2 fa-icon"/>
+                <Image src="{{ avatarPath }}" stretch="fill" class="avatar" />
+            </StackLayout>
+            <StackLayout row="2" colSpan="3">
+                <FlexboxLayout orientation="horizontal" tap="{{ toggleNicknameEdit }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}">
+                    <Label text="Nickname:  " textWrap="true" class="h2" />
+                    <Label text="{{ thisFriend.nickname }}" textWrap="true" class="h2" />
+                    <Label text="   &#xf040;" textWrap="true" class="h2 fa-icon" />
+                </FlexboxLayout>
+                <GridLayout rows="auto, auto" columns="*, 2*, *" visibility="{{ nicknameEditMode ? 'visible' : 'collapsed' }}" class="edit_nickname">
+                    <TextField row="0" col="1" id="submit" text="{{ thisFriend.nickname }}" class="h2" />
+                    <Button row="1" col="1" text="Save" tap="{{ saveNickname }}" />
+                </GridLayout>
+            </StackLayout>
+        </GridLayout>
+    </ScrollView>
+</Page>

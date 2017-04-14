@@ -3,7 +3,7 @@ import { Page } from 'ui/page';
 import * as SocialShare from "nativescript-social-share";
 
 import { fetchLocalAccountDetails, addFriend } from '../../data/app-store';
-import { initNavigation, navigateBack } from '../../app-navigation';
+import { navigateToRoot, navigateBack } from '../../app-navigation';
 
 class PageModel extends Observable {
 
@@ -31,7 +31,7 @@ class PageModel extends Observable {
     addFriend() {
         addFriend(this.friendCode)
             .then(() => {
-                initNavigation();
+                navigateToRoot();
             }, error => {
                 alert(error);
             });

@@ -4,15 +4,17 @@
     <Page.actionBar>
         <ActionBar title="{{ thisFriend.nickname }}" icon="" class="action-bar">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" tap="{{ goBack }}"/>
-            <ActionItem tap="{{ removeFriend }}" ios.systemIcon="16" ios.position="right" text="Delete" android.position="popup" class="action-item"/>
+            <ActionItem tap="{{ removeFriend }}" ios.systemIcon="16" ios.position="right" text="Delete Friend" android.position="popup" class="action-item"/>
+            <ActionItem tap="{{ clearMessages }}" text="Delete All Messages" android.position="popup" class="action-item"/>
+            <ActionItem tap="{{ editFriend }}" text="Friend Details" android.position="popup" class="action-item"/>
         </ActionBar>
     </Page.actionBar>
 
-    <!-- Chat messages list -->
     <GridLayout rows="*, auto">
 
-        <FlexboxLayout flexDirection="column-reverse">
-            <ListView row="0" id="messagesList" items="{{ thisFriend.messages }}" itemTap="" separatorColor="transparent">
+        <!-- Chat messages list -->
+        <FlexboxLayout row="0" flexDirection="column-reverse">
+            <ListView id="messagesList" items="{{ thisFriend.messages }}" itemTap="" separatorColor="transparent">
                 <ListView.itemTemplate>
                     <StackLayout order="">
 
@@ -47,7 +49,6 @@
                 </ListView.itemTemplate>
             </ListView>
         </FlexboxLayout>
-
 
         <!-- Send new message bar-->
         <GridLayout row="1" columns="*, auto, auto" rows="*" class="message-bar">

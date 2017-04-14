@@ -1,7 +1,7 @@
 import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
 
-import { initNavigation } from '../../app-navigation';
+import { navigateToRoot } from '../../app-navigation';
 import { AppData } from '../../data/app-store';
 
 class PageModel extends Observable {
@@ -64,7 +64,7 @@ class PageModel extends Observable {
     }
 
     goToStartPage() {
-        initNavigation();
+        navigateToRoot();
     }
 }
 

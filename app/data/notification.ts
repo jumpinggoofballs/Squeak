@@ -2,7 +2,7 @@ import * as LocalNotifications from "nativescript-local-notifications";
 import * as frameModule from 'ui/frame';
 import * as dialogs from 'ui/dialogs';
 
-import { initNavigation } from '../app-navigation';
+import { navigateToRoot } from '../app-navigation';
 
 export function alertNewMessages(messagesArray: Array<Object>) {
 
@@ -46,7 +46,7 @@ export function alertNewMessages(messagesArray: Array<Object>) {
                 title: 'Squeak',
                 body: body
             }]).then(() => {
-                LocalNotifications.addOnMessageReceivedCallback(() => initNavigation());
+                LocalNotifications.addOnMessageReceivedCallback(() => navigateToRoot());
             }, error => {
                 alert(error);
             });
@@ -79,7 +79,7 @@ export function alertFriendConfirmation(friendName) {
         title: 'Squeak',
         body: friendName + ' is now your Friend!'
     }]).then(() => {
-        LocalNotifications.addOnMessageReceivedCallback(() => initNavigation());
+        LocalNotifications.addOnMessageReceivedCallback(() => navigateToRoot());
     }, error => {
         alert(error);
     });
@@ -95,7 +95,7 @@ export var alertFriendRequest = function (friendName): Promise<Boolean> {
             body: friendName + ' wants to be your Friend!'
         }]).then(() => {
             LocalNotifications.addOnMessageReceivedCallback(() => {
-                initNavigation();
+                navigateToRoot();
                 dialogs.confirm({
                     title: "Do you want to allow " + friendName + " to send you messages?",
                     okButtonText: "Yes!",

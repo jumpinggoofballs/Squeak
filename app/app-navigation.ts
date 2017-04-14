@@ -12,14 +12,11 @@ export function navigateTo(pageName: string, params?: string) {
 }
 
 export function navigateBack() {
-    // const topFrameModule = frameModule.topmost();
-    // topFrameModule.goBack();
-
-    // for the time being, this is all that is necessary and works better
-    initNavigation();
+    const topFrameModule = frameModule.topmost();
+    topFrameModule.goBack();
 }
 
-export function initNavigation() {
+export function navigateToRoot() {
     const topFrameModule = frameModule.topmost();
     topFrameModule.navigate({
         moduleName: 'views/main-page/main-page',
