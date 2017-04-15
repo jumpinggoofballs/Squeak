@@ -1,5 +1,6 @@
-import * as firebase from 'nativescript-plugin-firebase';
 import { Couchbase } from 'nativescript-couchbase';
+import * as firebase from 'nativescript-plugin-firebase';
+import * as forge from 'node-forge';
 
 import { Friend, Message } from './app-data-model';
 import * as notificationService from './notification';
@@ -78,6 +79,7 @@ export class AppData {
         return new Promise((resolve, reject) => {
 
             this.firebaseInit().then(firebaseMessagingToken => {
+
                 firebase.login({
                     type: firebase.LoginType.PASSWORD,
                     email: appDocumentRef.settings.randomIdentity.email,
@@ -121,6 +123,12 @@ export class AppData {
 
     public saveRandomUserLocally(user) {
         return new Promise((resolve, reject) => {
+
+            // generate key pair            
+            var keypair = forge.pki.rsa.generateKeyPair({ bits: 4096, e: 0x10001 });
+            var privateKey = forge.pki.privateKeyToPem(keypair.privateKey);
+            var publicKey = forge.pki.publicKeyToPem(keypair.publicKey);
+
             database.createDocument({
                 appName: 'Squeak',
                 settings: {
@@ -131,12 +139,15 @@ export class AppData {
                     randomIdentity: {
                         email: user.email,
                         password: user.password
-                    }
+                    },
+                    privateKey: privateKey,
+                    publicKey: publicKey
                 }
             }, 'squeak-app');
             resolve({
                 userUID: user.firebaseUID,
-                firebaseMessagingToken: user.firebaseMessagingToken
+                firebaseMessagingToken: user.firebaseMessagingToken,
+                publicKey: publicKey
             });
         });
     }
@@ -146,7 +157,7 @@ export class AppData {
             firebase.setValue(
                 '/users/' + user.userUID,
                 {
-                    k: '',
+                    k: user.publicKey,
                     t: user.firebaseMessagingToken,
                     x: [],
                     z: []
@@ -178,6 +189,18 @@ export function updateLocalNickname(nickname) {
 
 export function getFriend(friendId: string) {
     return database.getDocument(friendId);
+}
+
+var getFriendPublicKey = function (firebaseId: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        var friendPublicKeyPath = '/users/' + firebaseId + '/k/';
+        firebase.addValueEventListener(snapshot => {
+            resolve(snapshot.value);
+        }, friendPublicKeyPath)
+            .catch(error => {
+                alert(error);
+            });
+    });
 }
 
 export var getFriendsList = function (): Promise<{ friendsList: Array<Object> }> {
@@ -213,32 +236,35 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
         ).then(() => {
 
             // notify friend with our own details
-            var encryptedMyDetails = JSON.stringify({
-                // to be encrypted
-                nickname: myProfile.nickname,
-                firebaseId: myProfile.firebaseUID
-                // avatar:
-            });
+            getFriendPublicKey(firebaseId).then(publicKey => {
 
-            firebase.push(
-                'notifications',
-                {
-                    targetUser: firebaseId,
-                    myDetails: encryptedMyDetails
-                }
-            ).then(() => {
+                var myDetails = {
+                    nickname: myProfile.nickname,
+                    firebaseId: myProfile.firebaseUID
+                    // avatar:
+                };
+                var encryptedMyDetails = encrypt(myDetails, publicKey);
 
-                var friendRef = database.getDocument(firebaseId);
+                firebase.push(
+                    'notifications',
+                    {
+                        targetUser: firebaseId,
+                        myDetails: encryptedMyDetails
+                    }
+                ).then(() => {
 
-                // if friendRef does not exist, initialise temporary values
-                if (!friendRef) {
+                    var friendRef = database.getDocument(firebaseId);
 
-                    //   Set preliminary details details for friend
-                    var newFriend = new Friend('Pending');
-                    newFriend.lastMessagePreview = 'Waiting for friend confirmation... (code: ' + firebaseId + ')';
-                    database.createDocument(newFriend, firebaseId);
-                }
-                resolve('Added New Friend');
+                    // if friendRef does not exist, initialise temporary values
+                    if (!friendRef) {
+
+                        //   Set preliminary details details for friend
+                        var newFriend = new Friend('Pending');
+                        newFriend.lastMessagePreview = 'Waiting for friend confirmation... (code: ' + firebaseId + ')';
+                        database.createDocument(newFriend, firebaseId);
+                    }
+                    resolve('Added New Friend');
+                });
             });
         });
     });
@@ -246,7 +272,7 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
 
 function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
 
-    var friend = JSON.parse(encryptedFriendDetails);
+    var friend = decrypt(encryptedFriendDetails);
 
     let localFriendRef = database.getDocument(friend.firebaseId);
 
@@ -342,30 +368,38 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
         database.updateDocument(chatId, newFriendDocument);
 
         // prepare message for sending
-        var encryptedMessage = JSON.stringify({
+        var message = {
             messageAuthor: newMessage.messageAuthor,
             messageText: newMessage.messageText,
             messageTimeSent: newMessage.messageTimeSent
+        };
+
+        // get encryption key
+        getFriendPublicKey(chatId).then(publicKey => {
+
+            var encryptedMessage = encrypt(message, publicKey);
+
+            // push message to firebase
+            firebase.push(
+                '/users/' + newFriendDocument._id + '/z',
+                encryptedMessage
+            )
+                //then update the local state    
+                .then(confirmation => {
+                    newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
+                    newFriendDocument.messages[newMessageIndex - 1].id = confirmation.key;
+                    database.updateDocument(chatId, newFriendDocument);
+                    resolve('Message Sent');
+
+                }, error => {
+                    newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
+                    database.updateDocument(chatId, newFriendDocument);
+                    alert(error);
+                    reject();
+                });
+        }).catch(error => {
+            alert(error);
         });
-
-        // push message to firebase
-        firebase.push(
-            '/users/' + newFriendDocument._id + '/z',
-            encryptedMessage
-        )
-            //then update the local state    
-            .then(confirmation => {
-                newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Sent";
-                newFriendDocument.messages[newMessageIndex - 1].id = confirmation.key;
-                database.updateDocument(chatId, newFriendDocument);
-                resolve('Message Sent');
-
-            }, error => {
-                newFriendDocument.messages[newMessageIndex - 1].messageStatus = "Failed";
-                database.updateDocument(chatId, newFriendDocument);
-                alert(error);
-                reject();
-            });
     });
 }
 
@@ -385,7 +419,7 @@ function retrieveAllMessages(): Promise<Array<Object>> {
                 var keysArray = Object.keys(snapshot.value);
                 keysArray.forEach(key => {
 
-                    var decryptedMessage = JSON.parse(snapshot.value[key]);
+                    var decryptedMessage = decrypt(snapshot.value[key]);
 
                     // create new Message() for local consumption
                     var newMessage = new Message('', false);
@@ -437,17 +471,21 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
 function confirmMessageReceipt(myId, author, messageId, timeReceived) {
     var notificationPath = 'confirmations/' + author;
-    var encryptedPayload = JSON.stringify({
+    var payload = {
         id: messageId,
         sender: myId,
         timeReceived: timeReceived
+    };
+
+    getFriendPublicKey(author).then(publicKey => {
+        var encryptedPayload = encrypt(payload, publicKey);
+        firebase.push(notificationPath, encryptedPayload);
     });
-    firebase.push(notificationPath, encryptedPayload);
 }
 
 function handleMessageReceiptNotification(encryptedNotification): Promise<{ chatId: string }> {
     return new Promise((resolve, reject) => {
-        var notification = JSON.parse(encryptedNotification);
+        var notification = decrypt(encryptedNotification);
         var friend = database.getDocument(notification.sender);
 
         friend.messages.forEach(message => {
@@ -462,7 +500,36 @@ function handleMessageReceiptNotification(encryptedNotification): Promise<{ chat
 }
 
 
-// Random utility functions
+// Crypto and utility functions
+
+function encrypt(payload: Object, key: string) {
+
+    var encryptionKey = forge.pki.publicKeyFromPem(key);
+    var preProcessedPayload = JSON.stringify(payload);
+    var encryptedPayload = '';
+
+    // handle messages longer than the 4B key    
+    while (preProcessedPayload) {
+        encryptedPayload += encryptionKey.encrypt(preProcessedPayload.slice(0, 501));       // because the key is 4 Kbits and padding is 11 Bytes
+        preProcessedPayload = preProcessedPayload.substr(501, preProcessedPayload.length - 1);
+    }
+
+    return encryptedPayload;
+}
+
+function decrypt(payload: string) {
+
+    var decryptionKey = forge.pki.privateKeyFromPem(appDocumentRef.settings.privateKey);
+    var decryptedPayloadString = '';
+
+    // handle messages longer than the 4B key
+    while (payload) {
+        decryptedPayloadString += decryptionKey.decrypt(payload.substr(0, 512));
+        payload = payload.substr(512, payload.length);
+    }
+
+    return JSON.parse(decryptedPayloadString);
+}
 
 function getRandomishString() {
     return Math.random().toString(36).slice(2);

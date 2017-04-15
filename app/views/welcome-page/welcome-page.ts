@@ -30,12 +30,12 @@ class PageModel extends Observable {
     initFirebase() {
         this.set('introTextVisibility', 'collapsed');
         this.set('spinnerVisible', true);
+        this.set('generateRandomFirebaseUserTextVisibility', 'visible');
 
         const appData = new AppData();
 
         appData.generateRandomFirebaseUser()
             .then(user => {
-                this.set('generateRandomFirebaseUserTextVisibility', 'visible');
 
                 appData.saveRandomUserLocally(user)
                     .then(userId => {
@@ -53,11 +53,13 @@ class PageModel extends Observable {
                             });
 
                     }, error => {
+                        this.set('spinnerVisible', false);
                         this.set('errorText', error);
                         this.set('errorMessageTextVisibility', 'visible')
                     });
 
             }, error => {
+                this.set('spinnerVisible', false);
                 this.set('errorText', error);
                 this.set('errorMessageTextVisibility', 'visible')
             });
