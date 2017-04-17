@@ -1,4 +1,4 @@
-GridLayout {
+.page {
     background-color: #5c687c;
     color: white;
     text-align: center;
@@ -8,9 +8,13 @@ Label {
     margin-bottom: 20;
 }
 
-.successButton {
-    background-color: #00BFA5;
+Button {
     border-radius: 10;
+    width: 200;
+}
+
+.avatar {
+    border-radius: 20;
 }
 
 .subtext {
@@ -31,4 +35,26 @@ Label {
 .errorMessage {
     color: #FF80AB;
     font-size: 15;
+}
+
+.nicknameCountainer {
+    padding: 20 0;
+}
+
+.nicknameLabel {
+    text-align: right;
+    padding: 3 5 0 0;
+}
+
+.nicknameLabelRight {
+    text-align: left;
+    padding: 3 0 0 5;
+}
+
+.nicknameInput {
+    margin: 0;
+    padding: 0 0 0 5;
+    text-align: left;
+    border-color: transparent;
+    background-color: transparent;
 }

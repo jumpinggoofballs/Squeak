@@ -11,7 +11,6 @@ class PageModel extends Observable {
     private nickname;
     private avatarPath;
     private nicknameEditMode;
-    private myCode;
 
     constructor(pageRef: any) {
         super();
@@ -20,7 +19,6 @@ class PageModel extends Observable {
         this.nickname = 'Squaaaaa';
         this.avatarPath = '~/images/avatar.png';
         this.nicknameEditMode = false;
-        this.myCode = '';
 
         this.setLocalAccountDetails();
     }
@@ -29,22 +27,17 @@ class PageModel extends Observable {
         var localAccountDocument = fetchLocalAccountDetails();
         this.set('nickname', localAccountDocument.settings.nickname);
         this.set('avatarPath', localAccountDocument.settings.avatarPath);
-        this.set('myCode', localAccountDocument.settings.firebaseUID);
     }
 
     toggleNicknameEdit() {
         this.set('nicknameEditMode', !this.nicknameEditMode);
-        this.pageRef.getViewById('goofball').focus();
+        this.pageRef.getViewById('nicknameInput').focus();
     }
 
     saveNickname() {
         updateLocalNickname(this.nickname);
         this.toggleNicknameEdit();
-        this.pageRef.getViewById('goofball').dismissSoftInput();
-    }
-
-    shareCode() {
-        SocialShare.shareText('Hey, my Squeak code is: ' + this.myCode);
+        this.pageRef.getViewById('nicknameInput').dismissSoftInput();
     }
 
     goBack() {

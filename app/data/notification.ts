@@ -43,6 +43,7 @@ export function alertNewMessages(messagesArray: Array<Object>) {
             };
 
             LocalNotifications.schedule([{
+                id: 0,
                 title: 'Squeak',
                 body: body
             }]).then(() => {

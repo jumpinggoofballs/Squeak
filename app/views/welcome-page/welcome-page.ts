@@ -2,21 +2,30 @@ import { EventData, Observable } from 'data/observable';
 import { Page } from 'ui/page';
 
 import { navigateToRoot } from '../../app-navigation';
-import { AppData } from '../../data/app-store';
+import { AppData, fetchLocalAccountDetails, updateLocalNickname } from '../../data/app-store';
 
 class PageModel extends Observable {
 
-    private appData;
+    private pageRef;
+    private nickname;
+    private avatarPath;
+
     private introTextVisibility;
     private spinnerVisible;
     private generateRandomFirebaseUserTextVisibility;
     private saveRandomUserLocallyUserTextVisibility;
     private userCreatedSuccessfullyTextVisibility;
     private errorMessageTextVisibility;
+    private myDetailsVisible;
+    private nicknameEditMode;
     private errorText;
 
-    constructor() {
+    constructor(page) {
         super();
+
+        this.pageRef = page;
+        this.nickname = 'Squeak';
+        this.avatarPath = '~/images/avatar.png';
 
         this.spinnerVisible = false;
         this.introTextVisibility = 'visible';
@@ -24,6 +33,8 @@ class PageModel extends Observable {
         this.saveRandomUserLocallyUserTextVisibility = 'collapsed';
         this.userCreatedSuccessfullyTextVisibility = 'collapsed';
         this.errorMessageTextVisibility = 'collapsed';
+        this.myDetailsVisible = false;
+        this.nicknameEditMode = false;
         this.errorText = '';
     }
 
@@ -65,6 +76,21 @@ class PageModel extends Observable {
             });
     }
 
+    toggleNicknameEdit() {
+        this.set('nicknameEditMode', !this.nicknameEditMode);
+        this.pageRef.getViewById('nicknameInput').focus();
+    }
+
+    saveNickname() {
+        updateLocalNickname(this.nickname);
+        this.toggleNicknameEdit();
+        this.pageRef.getViewById('nicknameInput').dismissSoftInput();
+    }
+
+    goToMyDetails() {
+        this.set('myDetailsVisible', true);
+    }
+
     goToStartPage() {
         navigateToRoot();
     }
@@ -72,5 +98,5 @@ class PageModel extends Observable {
 
 export function pageLoaded(args: EventData) {
     var page = <Page>args.object;
-    page.bindingContext = new PageModel;
+    page.bindingContext = new PageModel(page);
 }

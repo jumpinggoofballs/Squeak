@@ -30,6 +30,11 @@ database.createView('friends', '1', (document, emitter) => {
     };
 });
 
+function resetDatabase() {
+    database = database.destroyDatabase();
+    database = new Couchbase(DB_config.db_name);
+}
+
 //////////////////////////////
 // Utility functions exposed to all other Views, which abstract away completely from the DB backend. 
 //////////////////////////////
@@ -98,11 +103,11 @@ export class AppData {
     public generateRandomFirebaseUser() {
         return new Promise((resolve, reject) => {
 
-            database.deleteDocument('squeak-app');
+            resetDatabase();
 
             this.firebaseInit().then(firebaseMessagingToken => {
                 var randomEmail = getRandomishString() + '@' + getRandomishString() + '.com';
-                var randomPassword = getRandomishString() + getRandomishString();
+                var randomPassword = forge.random.getBytesSync(32);
 
                 firebase.createUser({
                     email: randomEmail,
@@ -155,7 +160,7 @@ export class AppData {
     public updateFirebaseRecords(user) {
         return new Promise((resolve, reject) => {
             firebase.setValue(
-                '/users/' + user.userUID,
+                '/u/' + user.userUID,
                 {
                     k: user.publicKey,
                     t: user.firebaseMessagingToken,
@@ -193,7 +198,7 @@ export function getFriend(friendId: string) {
 
 var getFriendPublicKey = function (firebaseId: string): Promise<string> {
     return new Promise((resolve, reject) => {
-        var friendPublicKeyPath = '/users/' + firebaseId + '/k/';
+        var friendPublicKeyPath = '/u/' + firebaseId + '/k/';
         firebase.addValueEventListener(snapshot => {
             resolve(snapshot.value);
         }, friendPublicKeyPath)
@@ -227,7 +232,7 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
     return new Promise((resolve, reject) => {
 
         var myProfile = database.getDocument('squeak-app').settings;
-        var path = '/users/' + myProfile.firebaseUID + '/x';
+        var path = '/u/' + myProfile.firebaseUID + '/x';
 
         // add this user code / firebase Id to the list of people who can message me
         firebase.push(
@@ -246,7 +251,7 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
                 var encryptedMyDetails = encrypt(myDetails, publicKey);
 
                 firebase.push(
-                    'notifications',
+                    '/n/',
                     {
                         targetUser: firebaseId,
                         myDetails: encryptedMyDetails
@@ -314,7 +319,7 @@ export var removeFriend = function (targetId: string): Promise<{ logMessage: str
     return new Promise((resolve, reject) => {
 
         // get the path to the permission entry to remove
-        var permissionPath = 'users/' + appDocumentRef.settings.firebaseUID + '/x/'
+        var permissionPath = '/u/' + appDocumentRef.settings.firebaseUID + '/x/'
         firebase.query(result => {
 
             // only get excited if we actually find the permission record
@@ -381,7 +386,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
 
             // push message to firebase
             firebase.push(
-                '/users/' + newFriendDocument._id + '/z',
+                '/u/' + newFriendDocument._id + '/z',
                 encryptedMessage
             )
                 //then update the local state    
@@ -408,7 +413,7 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
         var myId = appDocumentRef.settings.firebaseUID;
         var eventListeners;
-        var myMessagesPath = 'users/' + myId + '/z';
+        var myMessagesPath = '/u/' + myId + '/z';
 
         firebase.addValueEventListener(snapshot => {
 
@@ -470,7 +475,7 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 }
 
 function confirmMessageReceipt(myId, author, messageId, timeReceived) {
-    var notificationPath = 'confirmations/' + author;
+    var notificationPath = '/c/' + author;
     var payload = {
         id: messageId,
         sender: myId,

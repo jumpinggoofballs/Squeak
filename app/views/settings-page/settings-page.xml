@@ -18,13 +18,8 @@
                     <Label text="{{ nickname }}" textWrap="true" class="h2" />
                     <Label text="   &#xf040;" textWrap="true" class="h2 fa-icon" />
                 </FlexboxLayout>
-                <StackLayout class="share_code" tap="{{ shareCode }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}">
-                    <Label text="Share code:  " textWrap="true" class="h2" />
-                    <Label class="code" text="{{ myCode }}" textWrap="true" class="h3" />
-                </StackLayout>
-                <Label text="&#xf14d;" textWrap="true" class="share fa-icon" tap="{{ shareCode }}"/>
                 <GridLayout rows="auto, auto" columns="*, 2*, *" visibility="{{ nicknameEditMode ? 'visible' : 'collapsed' }}" class="edit_nickname">
-                    <TextField row="0" col="1" id="goofball" text="{{ nickname }}" class="h2" />
+                    <TextField row="0" col="1" id="nicknameInput" text="{{ nickname }}" class="h2" />
                     <Button row="1" col="1" text="Save" tap="{{ saveNickname }}" />
                 </GridLayout>
             </StackLayout>
