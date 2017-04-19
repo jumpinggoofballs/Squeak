@@ -564,6 +564,8 @@ function encrypt(payload: Object, key: string) {
 
     var encryptionKey = forge.pki.publicKeyFromPem(key);
     var preProcessedPayload = JSON.stringify(payload);
+    preProcessedPayload = forge.util.encodeUtf8(preProcessedPayload);
+    preProcessedPayload = forge.util.encode64(preProcessedPayload);
     var encryptedPayload = '';
 
     // handle messages longer than the 4B key    
@@ -585,6 +587,9 @@ function decrypt(payload: string) {
         decryptedPayloadString += decryptionKey.decrypt(payload.substr(0, 512));
         payload = payload.substr(512, payload.length);
     }
+
+    decryptedPayloadString = forge.util.decode64(decryptedPayloadString);
+    decryptedPayloadString = forge.util.decodeUtf8(decryptedPayloadString);
 
     return JSON.parse(decryptedPayloadString);
 }
