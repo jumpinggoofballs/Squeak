@@ -44,7 +44,7 @@
                 <StackLayout row="3" col="1">
                     <Button text="Save" tap="{{ saveNickname }}" visibility="{{ nicknameEditMode ? 'visible' : 'collapsed' }}"/>
                     <Label text="&#xA;" textWrap="true" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}"/>
-                    <Button text="Go to Chat" tap="goToStartPage" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}"/>
+                    <Button text="Go to Chat" tap="{{ goToStartPage }}" visibility="{{ nicknameEditMode ? 'collapsed' : 'visible' }}"/>
                 </StackLayout>
             </GridLayout>
         </ScrollView>

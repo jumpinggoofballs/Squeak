@@ -56,16 +56,16 @@ export class AppData {
             firebase.init({
 
                 onMessageReceivedCallback: function (notification: any) {
-                    if (notification.messageToFetch) {
+                    if (notification.m) {
                         retrieveAllMessages().then(messagesArray => notificationService.alertNewMessages(messagesArray));
                     }
 
-                    if (notification.myDetails) {
-                        handleAddFriendNotification(notification.notificationId, notification.myDetails);
+                    if (notification.n) {
+                        handleAddFriendNotifications();
                     }
 
-                    if (notification.m) {
-                        handleMessageReceiptNotification(notification.m).then(chatId => notificationService.refreshMessageStatus(chatId));
+                    if (notification.c) {
+                        handleMessageReceiptNotification();
                     }
                 },
 
@@ -232,12 +232,12 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
     return new Promise((resolve, reject) => {
 
         var myProfile = database.getDocument('squeak-app').settings;
-        var path = '/u/' + myProfile.firebaseUID + '/x';
+        var authorisedFriendPath = '/u/' + myProfile.firebaseUID + '/x/' + firebaseId;
 
         // add this user code / firebase Id to the list of people who can message me
-        firebase.push(
-            path,
-            firebaseId
+        firebase.setValue(
+            authorisedFriendPath,
+            true
         ).then(() => {
 
             // notify friend with our own details
@@ -251,11 +251,8 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
                 var encryptedMyDetails = encrypt(myDetails, publicKey);
 
                 firebase.push(
-                    '/n/',
-                    {
-                        targetUser: firebaseId,
-                        myDetails: encryptedMyDetails
-                    }
+                    '/n/' + firebaseId,
+                    encryptedMyDetails
                 ).then(() => {
 
                     var friendRef = database.getDocument(firebaseId);
@@ -275,44 +272,67 @@ export var addFriend = function (firebaseId: string): Promise<{ logMessage: stri
     });
 }
 
-function handleAddFriendNotification(notificationId, encryptedFriendDetails) {
+var handleAddFriendNotifications = function (): Promise<{ logMessage: string }> {
+    return new Promise((resolve, reject) => {
 
-    var friend = decrypt(encryptedFriendDetails);
+        var myId = appDocumentRef.settings.firebaseUID;
+        var eventListeners;
+        var myNotificationsPath = '/n/' + myId;
 
-    let localFriendRef = database.getDocument(friend.firebaseId);
+        firebase.addValueEventListener(snapshot => {
 
-    // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
-    if (localFriendRef) {
+            // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.
+            if (snapshot.value) {
+                var keysArray = Object.keys(snapshot.value);
 
-        localFriendRef.nickname = friend.nickname;
-        localFriendRef.lastMessagePreview = 'New Friend';
-        database.updateDocument(friend.firebaseId, localFriendRef);
+                keysArray.forEach(key => {
+                    var friend = decrypt(snapshot.value[key]);
+                    let localFriendRef = database.getDocument(friend.firebaseId);
 
-        notificationService.alertFriendConfirmation(friend.nickname);
+                    // if we already have a record for that friend (i.e. they gave us the code), update the Friend record
+                    if (localFriendRef) {
 
-    } else {
-
-        // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
-        notificationService.alertFriendRequest(friend.nickname)
-            .then(confirmation => {
-                // if we receive a true value (== accept) from the Promise
-                if (confirmation) {
-
-                    // add Friend record with initial values
-                    addFriend(friend.firebaseId).then(() => {
-
-                        // then update with the actual values
-                        let localFriendRef = database.getDocument(friend.firebaseId);
                         localFriendRef.nickname = friend.nickname;
                         localFriendRef.lastMessagePreview = 'New Friend';
                         database.updateDocument(friend.firebaseId, localFriendRef);
 
                         notificationService.alertFriendConfirmation(friend.nickname);
-                    });
-                }
-            });
-    }
 
+                    } else {
+                        // if we do not have a record for that friend (i.e. we gave them the code), request permission to add them to our friends list
+                        notificationService.alertFriendRequest(friend.nickname)
+                            .then(confirmation => {
+                                // if we receive a true value (== accept) from the Promise
+                                if (confirmation) {
+
+                                    // add Friend record with initial values
+                                    addFriend(friend.firebaseId).then(() => {
+
+                                        // then update with the actual values
+                                        let localFriendRef = database.getDocument(friend.firebaseId);
+                                        localFriendRef.nickname = friend.nickname;
+                                        localFriendRef.lastMessagePreview = 'New Friend';
+                                        database.updateDocument(friend.firebaseId, localFriendRef);
+
+                                        notificationService.alertFriendConfirmation(friend.nickname);
+                                    });
+                                }
+                            });
+                    };
+                });
+
+                firebase.removeEventListeners(eventListeners, myNotificationsPath);
+                firebase.setValue(myNotificationsPath, null);
+                resolve('All notifications retrieved');
+
+            } else reject('Could not find any notification on Firebase');
+
+        }, myNotificationsPath).then(listenerWrapper => {
+
+            // get eventListeners ref
+            eventListeners = listenerWrapper.listeners;
+        });
+    });
 }
 
 export var removeFriend = function (targetId: string): Promise<{ logMessage: string }> {
@@ -488,19 +508,52 @@ function confirmMessageReceipt(myId, author, messageId, timeReceived) {
     });
 }
 
-function handleMessageReceiptNotification(encryptedNotification): Promise<{ chatId: string }> {
+function handleMessageReceiptNotification(): Promise<{ logMessage: string }> {
     return new Promise((resolve, reject) => {
-        var notification = decrypt(encryptedNotification);
-        var friend = database.getDocument(notification.sender);
 
-        friend.messages.forEach(message => {
-            if (notification.id === message.id) {
-                message.messageStatus = 'Received';
-                message.messageTimeReceived = notification.timeReceived;
-                database.updateDocument(notification.sender, friend);
-                resolve(notification.sender);
-            }
-        });
+        var myId = appDocumentRef.settings.firebaseUID;
+        var eventListeners;
+        var myConfirmationsPath = '/c/' + myId;
+
+        firebase.addValueEventListener(snapshot => {
+
+            // only get excited when things are Added to the Path, not also on the Remove event which is triggered later.
+            if (snapshot.value) {
+
+                var keysArray = Object.keys(snapshot.value);
+                keysArray.forEach(key => {
+
+                    // for each confirmation logged on firebase, decrypt                    
+                    var decryptedConfirmation = decrypt(snapshot.value[key]);
+                    var friend = database.getDocument(decryptedConfirmation.sender);
+
+                    // then find the message it relates to and change its status and time received properties                    
+                    friend.messages.forEach(message => {
+                        if (decryptedConfirmation.id === message.id) {
+                            message.messageStatus = 'Received';
+                            message.messageTimeReceived = decryptedConfirmation.timeReceived;
+                        }
+                    });
+
+                    database.updateDocument(decryptedConfirmation.sender, friend);
+                    notificationService.refreshMessageStatus(decryptedConfirmation.sender);
+                });
+
+                // prevent triggering the event listener recursively, then clear the record on firebase
+                firebase.removeEventListeners(eventListeners, myConfirmationsPath);
+                firebase.setValue(myConfirmationsPath, null);
+
+                // then resolve Promise
+                resolve('All notifications collected');
+
+            } else reject('Failed to retrieve all notifications');
+
+        }, myConfirmationsPath)
+            .then(listenerWrapper => {
+
+                // get eventListeners ref
+                eventListeners = listenerWrapper.listeners;
+            });
     });
 }
 
