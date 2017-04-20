@@ -23,17 +23,18 @@ const DB_config = {
 }
 var database = new Couchbase(DB_config.db_name);
 
+
+function resetDatabase() {
+    database = database.destroyDatabase();
+    database = new Couchbase(DB_config.db_name);
+}
+
 // Pre-define Queries
 database.createView('friends', '1', (document, emitter) => {
     if (document.documentType === 'Friend') {
         emitter.emit(document.timeLastMessage, document);     // call back with this document;
     };
 });
-
-function resetDatabase() {
-    database = database.destroyDatabase();
-    database = new Couchbase(DB_config.db_name);
-}
 
 //////////////////////////////
 // Utility functions exposed to all other Views, which abstract away completely from the DB backend. 
@@ -165,7 +166,6 @@ export class AppData {
                     k: user.publicKey,
                     t: user.firebaseMessagingToken,
                     x: [],
-                    z: []
                 }
             ).then(() => {
                 resolve('App Data initialised.');
@@ -406,7 +406,7 @@ export var sendMessage = function (chatId: string, messageText: string): Promise
 
             // push message to firebase
             firebase.push(
-                '/u/' + newFriendDocument._id + '/z',
+                '/m/' + newFriendDocument._id,
                 encryptedMessage
             )
                 //then update the local state    
@@ -433,7 +433,7 @@ function retrieveAllMessages(): Promise<Array<Object>> {
 
         var myId = appDocumentRef.settings.firebaseUID;
         var eventListeners;
-        var myMessagesPath = '/u/' + myId + '/z';
+        var myMessagesPath = '/m/' + myId;
 
         firebase.addValueEventListener(snapshot => {
 

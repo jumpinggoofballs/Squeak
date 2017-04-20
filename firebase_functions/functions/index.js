@@ -130,86 +130,7 @@ exports.receiptNotify = functions.database.ref('confirmations/{targetUID}/{notif
 });
 
 
-exports.friendNotifyNew = functions.database.ref('/n/{targetId}/{notificationId}').onWrite(event => {
-
-    const snapshot = event.data;
-    const targetUser = event.params.targetId;
-
-    // abort if the data has not been mutated (== the .previous.value of the snapshot is null )
-    if (snapshot.previous.val()) {
-        return;
-    }
-
-    // also abort if the data has just been cleaned up by the client
-    if (!snapshot.val()) {
-        return;
-    }
-
-    // else: get the notification details
-    const senderProfileDetails = snapshot.val();
-
-    // options for sending
-    const options = {
-        priority: "high"
-    };
-
-    // construct the payload
-    const payload = {
-        data: {
-            n: senderProfileDetails,
-        }
-    };
-
-
-    // grab the FCM messaging token from the target user record in firebase    
-    const targetTokenRef = event.data.adminRef.root.child('u').child(targetUser).child('t');
-    targetTokenRef.once('value').then(tokenObj => {
-
-        // send the pre-defined payload to the device identified by the FCM token
-        const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload, options);
-    });
-});
-
-
-exports.messageNotifyNew = functions.database.ref('/u/{targetId}/z/{messageId}').onWrite(event => {
-
-    const snapshot = event.data;
-    const targetId = event.params.targetId;
-
-    // abort if the data has not been mutated (== the .previous.value of the snapshot is null )
-    if (snapshot.previous.val()) {
-        return;
-    }
-
-    // also abort if the data has just been cleaned up by the client
-    if (!snapshot.val()) {
-        return;
-    }
-
-    // construct the payload
-    var payload = {
-        notification: {
-            title: 'Squeak',
-            body: 'You have new messages!',
-            sound: 'default',
-        },
-        data: {
-            m: snapshot.val()
-        }
-    };
-
-    // grab the FCM messaging token from the target user record in firebase 
-    const targetTokenRef = event.data.adminRef.root.child('u').child(targetId).child('t');
-    targetTokenRef.once('value').then(tokenObj => {
-
-        // send the pre-defined payload to the device identified by the FCM token
-        const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload);
-    });
-});
-
-
+// new API
 exports.receiptNotifyNew = functions.database.ref('/c/{targetId}/{confirmationId}').onWrite(event => {
 
     const snapshot = event.data;
@@ -225,24 +146,116 @@ exports.receiptNotifyNew = functions.database.ref('/c/{targetId}/{confirmationId
         return;
     }
 
-    // options for sending
-    const options = {
-        priority: "high"
-    };
-
-    // construct the payload
-    var payload = {
-        data: {
-            c: snapshot.val()
-        }
-    };
-
-    // grab the FCM messaging token from the target user record in firebase    
-    const targetTokenRef = event.data.adminRef.root.child('u').child(targetId).child('t');
-    targetTokenRef.once('value').then(tokenObj => {
-
-        // send the pre-defined payload to the device identified by the FCM token
-        const token = tokenObj.val();
-        return admin.messaging().sendToDevice(token, payload, options);
-    });
+    return pushConfirmation(targetId, snapshot.val());
 });
+
+exports.friendNotifyNew = functions.database.ref('/n/{targetId}/{notificationId}').onWrite(event => {
+
+    const snapshot = event.data;
+    const targetId = event.params.targetId;
+
+    // abort if the data has not been mutated (== the .previous.value of the snapshot is null )
+    if (snapshot.previous.val()) {
+        return;
+    }
+
+    // also abort if the data has just been cleaned up by the client
+    if (!snapshot.val()) {
+        return;
+    }
+
+    return pushNotification(targetId, snapshot.val());
+});
+
+exports.messageNotifyNew = functions.database.ref('/m/{targetId}/{messageId}').onWrite(event => {
+
+    const snapshot = event.data;
+    const targetId = event.params.targetId;
+
+    // abort if the data has not been mutated (== the .previous.value of the snapshot is null )
+    if (snapshot.previous.val()) {
+        return;
+    }
+
+    // also abort if the data has just been cleaned up by the client
+    if (!snapshot.val()) {
+        return;
+    }
+
+    return pushMessage(targetId, snapshot.val());
+});
+
+
+// util functions
+function pushConfirmation(targetId, payloadValue) {
+    return new Promise((resolve, reject) => {
+        // construct the payload
+        var payload = {
+            data: {
+                c: payloadValue
+            }
+        };
+
+        return sendNotification(targetId, payload);
+    });
+}
+
+function pushNotification(targetId, payloadValue) {
+    return new Promise((resolve, reject) => {
+        // construct the payload
+        var payload = {
+            data: {
+                n: payloadValue
+            }
+        };
+
+        return sendNotification(targetId, payload);
+    });
+}
+
+function pushMessage(targetId, payloadValue) {
+    return new Promise((resolve, reject) => {
+        // construct the payload
+        var payload = {
+            notification: {
+                title: 'Squeak',
+                body: 'You have new messages!',
+                sound: 'default',
+            },
+            data: {
+                m: payloadValue
+            }
+        };
+
+        return sendNotification(targetId, payload);
+    });
+}
+
+
+function sendNotification(targetId, payload) {
+    return new Promise((resolve, reject) => {
+
+        // make all notifications high priority        
+        const options = {
+            priority: 'high'
+        };
+
+        // grab the FCM messaging token from the target user record in firebase    
+        getTargetToken(targetId).then(token => {
+
+            // send the pre-defined payload to the device identified by the FCM token
+            resolve(admin.messaging().sendToDevice(token, payload, options));
+        });
+    });
+}
+
+function getTargetToken(targetId) {
+    return new Promise((resolve, reject) => {
+        const targetTokenRef = admin.database().ref('/u/' + targetId + '/t');
+        targetTokenRef.once('value').then(tokenObj => {
+
+            // resolve the FCM token value
+            resolve(tokenObj.val());
+        });
+    });
+}

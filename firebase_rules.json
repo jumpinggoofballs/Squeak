@@ -3,21 +3,27 @@
         "c": {
             "$uid": {
                 ".read": "$uid === auth.uid",
-                ".write": "(root.child('u').child($uid).child('x').child(auth.uid).val() === true) || ($uid === auth.uid)"
+                ".write": "(root.child('u').child($uid).child('x').child(auth.uid).exists()) || ($uid === auth.uid)"
             }
         },
         "n": {
+            ".write": "auth != null",
+            "$uid": {
+                ".read": "$uid === auth.uid"
+            }
+        },
+        "m": {
             "$uid": {
                 ".read": "$uid === auth.uid",
-                ".write": "auth != null"
+                ".write": "(root.child('u').child($uid).child('x').child(auth.uid).exists()) || ($uid === auth.uid)"
             }
         },
         "u": {
             "$uid": {
                 ".read": "$uid === auth.uid",
                 ".write": "$uid === auth.uid",
-                "z": {
-                    ".write": "root.child('u').child($uid).child('x').child(auth.uid).val() === true"
+                "k": {
+                    ".read": "auth != null"
                 }
             }
         }
