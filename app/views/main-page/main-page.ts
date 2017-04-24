@@ -21,27 +21,8 @@ class PageModel extends Observable {
         this.myFriends = new ObservableArray([]);
 
         this.populateFriendsList();
-        // this.play();
 
         pageRef.on('refreshData', () => this.populateFriendsList());
-    }
-
-    play() {
-        var message = 'hello';
-        console.log(message + '\n');
-
-        var keypair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-
-        var pem = forge.pki.publicKeyToPem(keypair.publicKey);
-        console.log(pem + '\n');
-
-        var publicKey = forge.pki.publicKeyFromPem(pem);
-        var encrypted = publicKey.encrypt(message);
-        console.log(encrypted + '\n');
-
-        var decrypted = keypair.privateKey.decrypt(encrypted);
-        console.log(decrypted + '\n');
-
     }
 
     private populateFriendsList() {
